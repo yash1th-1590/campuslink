@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+import secrets
 
 db = SQLAlchemy()
 
@@ -19,11 +20,23 @@ class User(UserMixin, db.Model):
     email_notifications = db.Column(db.Boolean, default=True)
     push_notifications = db.Column(db.Boolean, default=True)
     
+    # Email Verification Fields
+    email_verified = db.Column(db.Boolean, default=False)
+    verification_token = db.Column(db.String(200), unique=True)
+    token_created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+    
+    def generate_verification_token(self):
+        """Generate a unique verification token"""
+        token = secrets.token_urlsafe(32)
+        self.verification_token = token
+        self.token_created_at = datetime.utcnow()
+        return token
     
     def is_admin(self):
         return self.role == 'admin'
@@ -33,6 +46,9 @@ class User(UserMixin, db.Model):
     
     def is_student(self):
         return self.role == 'student'
+    
+    def is_verified(self):
+        return self.email_verified
 
 class Event(db.Model):
     __tablename__ = 'events'

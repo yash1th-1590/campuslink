@@ -9,6 +9,8 @@ import threading
 import time
 import re
 import socket
+from email_utils import send_verification_email
+import secrets
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -120,52 +122,138 @@ def index():
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
+    
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
+        
         if user and user.check_password(form.password.data):
+            # Check if email is verified
+            if not user.email_verified:
+                flash('Please verify your email address before logging in. Check your inbox for the verification link.', 'warning')
+                return render_template('login.html', form=form, unverified_email=user.email)
+            
             login_user(user)
             flash(f'Welcome back, {user.full_name}!', 'success')
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid username or password.', 'danger')
+    
     return render_template('login.html', form=form)
+
+# ==================== Email Verification Routes ====================
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
+    
     form = RegistrationForm()
     if form.validate_on_submit():
+        # Check if username already exists
         existing_user = User.query.filter_by(username=form.username.data).first()
         if existing_user:
-            flash('Username already taken.', 'danger')
+            flash('Username already taken. Please choose a different one.', 'danger')
             return render_template('register.html', form=form)
         
+        # Check if email already exists
         existing_email = User.query.filter_by(email=form.email.data).first()
         if existing_email:
-            flash('Email already registered.', 'danger')
+            flash('Email already registered. Please use a different email or login.', 'danger')
             return render_template('register.html', form=form)
         
+        # Create user with email_verified = False
         user = User(
             username=form.username.data,
             email=form.email.data,
             full_name=form.full_name.data,
             department=form.department.data,
             role=form.role.data,
-            email_notifications=form.email_notifications.data
+            email_notifications=form.email_notifications.data,
+            email_verified=False  # Not verified yet
         )
         user.set_password(form.password.data)
+        
+        # Generate verification token
+        verification_token = user.generate_verification_token()
         
         try:
             db.session.add(user)
             db.session.commit()
-            flash('Registration successful! Please login.', 'success')
+            
+            # Send verification email
+            send_verification_email(user.email, user.full_name, verification_token)
+            
+            flash('Registration successful! A verification link has been sent to your email. Please verify your email before logging in.', 'success')
             return redirect(url_for('login'))
         except Exception as e:
             db.session.rollback()
             flash(f'Registration failed: {str(e)}', 'danger')
+    
     return render_template('register.html', form=form)
+
+@app.route('/verify/<token>')
+def verify_email(token):
+    """Verify user's email address"""
+    user = User.query.filter_by(verification_token=token).first()
+    
+    if not user:
+        flash('Invalid or expired verification link.', 'danger')
+        return redirect(url_for('login'))
+    
+    # Check if token is expired (24 hours)
+    if user.token_created_at and datetime.utcnow() - user.token_created_at > timedelta(hours=24):
+        flash('Verification link has expired. Please register again.', 'danger')
+        return redirect(url_for('login'))
+    
+    # Check if already verified
+    if user.email_verified:
+        flash('Email already verified. You can login now.', 'info')
+        return redirect(url_for('login'))
+    
+    # Verify the user
+    user.email_verified = True
+    user.verification_token = None  # Clear token after verification
+    
+    try:
+        db.session.commit()
+        flash('Email verified successfully! You can now login to your account.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Verification failed: {str(e)}', 'danger')
+    
+    return redirect(url_for('login'))
+
+@app.route('/resend_verification', methods=['GET', 'POST'])
+def resend_verification():
+    """Resend verification email"""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            flash('No account found with this email.', 'danger')
+            return redirect(url_for('login'))
+        
+        if user.email_verified:
+            flash('Email already verified. You can login.', 'info')
+            return redirect(url_for('login'))
+        
+        # Generate new token
+        verification_token = user.generate_verification_token()
+        user.token_created_at = datetime.utcnow()
+        
+        try:
+            db.session.commit()
+            send_verification_email(user.email, user.full_name, verification_token)
+            flash('A new verification link has been sent to your email.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Failed to send verification email: {str(e)}', 'danger')
+        
+        return redirect(url_for('login'))
+    
+    return render_template('resend_verification.html')
 
 @app.route('/logout')
 @login_required
