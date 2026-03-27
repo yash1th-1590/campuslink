@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Statistics{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-chart-bar text-primary"></i> Database Statistics</h1>
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-users fa-3x text-primary mb-2"></i>
+                <h2>{{ users_count }}</h2>
+                <p class="mb-0 text-muted">Total Users</p>
+                <hr>
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-success">Students</small><br>
+                        <strong>{{ student_count }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-info">Faculty</small><br>
+                        <strong>{{ faculty_count }}</strong>
+                    </div>
+                </div>
+                <small class="text-warning">Admins: {{ admin_count }}</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-calendar-alt fa-3x text-primary mb-2"></i>
+                <h2>{{ events_count }}</h2>
+                <p class="mb-0 text-muted">Total Events</p>
+                <hr>
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-success">Upcoming</small><br>
+                        <strong>{{ upcoming_events }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-secondary">Completed</small><br>
+                        <strong>{{ completed_events }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-check-circle fa-3x text-primary mb-2"></i>
+                <h2>{{ registrations_count }}</h2>
+                <p class="mb-0 text-muted">Total Registrations</p>
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <small class="text-success">Average per event</small><br>
+                        <strong>{% if events_count > 0 %}{{ (registrations_count / events_count)|round(1) }}{% else %}0{% endif %}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-user-check fa-3x text-primary mb-2"></i>
+                <h2>{{ attendance_count }}</h2>
+                <p class="mb-0 text-muted">Attendance Marked</p>
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <small class="text-success">Overall Rate</small><br>
+                        <strong>{% if registrations_count > 0 %}{{ (attendance_count / registrations_count * 100)|round(1) }}{% else %}0{% endif %}%</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="fas fa-database"></i> Database Information</h5>
+    </div>
+    <div class="card-body">
+        <table class="table table-borderless">
+            <tr>
+                <th width="200">Database Type:</th>
+                <td>MySQL</td>
+            </tr>
+            <tr>
+                <th>Tables:</th>
+                <td>users, events, registrations, attendance, notifications</td>
+            </tr>
+            <tr>
+                <th>Total Records:</th>
+                <td>{{ users_count + events_count + registrations_count + attendance_count }}</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="mt-3 text-center">
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+{% endblock %}

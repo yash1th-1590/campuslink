@@ -1,0 +1,56 @@
+# Environment variables (contains passwords and secret keys!)
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv
+
+# Database files (SQLite - if any)
+*.db
+*.sqlite
+*.sqlite3
+campuslink.db
+
+# MySQL data files (if any)
+*.ibd
+*.frm
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Flask files
+instance/
+.flaskenv
+
+# Logs
+*.log
+logs/
+
+# Testing files
+test_*.py
+debug_*.py
+quick_*.py
+fix_*.py
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

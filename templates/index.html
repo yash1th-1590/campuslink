@@ -1,0 +1,674 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========== VIBRANT COLOR VARIABLES ========== */
+    :root {
+        --primary: #6366f1;
+        --primary-light: #818cf8;
+        --primary-dark: #4f46e5;
+        --secondary: #ec489a;
+        --secondary-light: #f472b6;
+        --accent: #14b8a6;
+        --accent-light: #2dd4bf;
+        --dark: #0f172a;
+        --dark-light: #1e293b;
+        --gray: #64748b;
+        --light: #f1f5f9;
+        --white: #ffffff;
+        --gradient-1: linear-gradient(135deg, #6366f1 0%, #ec489a 100%);
+        --gradient-2: linear-gradient(135deg, #14b8a6 0%, #6366f1 100%);
+        --gradient-3: linear-gradient(135deg, #f97316 0%, #ec489a 100%);
+    }
+    
+    /* ========== BODY WITH GRADIENT BACKGROUND ========== */
+    body {
+        background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    }
+    
+    /* ========== ANIMATIONS ========== */
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes glow {
+        0% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.3); }
+        100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.6); }
+    }
+    
+    /* ========== HERO SECTION ========== */
+    .hero {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #2d1b69 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -30%;
+        width: 80%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    
+    .hero::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 100px;
+        background: linear-gradient(to top, #0f172a, transparent);
+        pointer-events: none;
+    }
+    
+    .hero-content {
+        animation: fadeUp 0.6s ease-out;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .hero-content h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+        line-height: 1.2;
+        background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #c084fc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .hero-content h1 span {
+        background: linear-gradient(135deg, #f472b6 0%, #a78bfa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .hero-description {
+        font-size: 1.1rem;
+        color: #cbd5e1;
+        margin-bottom: 35px;
+        max-width: 500px;
+        line-height: 1.6;
+    }
+    
+    .hero-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-primary {
+        background: var(--gradient-1);
+        color: white;
+        padding: 12px 32px;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s;
+        border: none;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+        animation: glow 0.5s ease;
+        color: white;
+    }
+    
+    .btn-outline {
+        background: transparent;
+        border: 2px solid var(--primary-light);
+        color: var(--primary-light);
+        padding: 10px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    
+    .btn-outline:hover {
+        background: rgba(99, 102, 241, 0.2);
+        border-color: var(--primary);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    /* Hero Image Card - FIXED: Changed from white to dark glass */
+    .hero-image {
+        position: relative;
+        animation: float 4s ease-in-out infinite;
+    }
+    
+    .hero-card {
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 25px;
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .hero-card h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--primary-light);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .hero-card h4 i {
+        color: var(--secondary);
+    }
+    
+    .feature-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+    }
+    
+    .feature-item:last-child {
+        border-bottom: none;
+    }
+    
+    .feature-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .feature-icon i {
+        font-size: 18px;
+        background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .feature-text strong {
+        display: block;
+        font-size: 0.9rem;
+        color: white;
+        margin-bottom: 4px;
+    }
+    
+    .feature-text span {
+        font-size: 0.75rem;
+        color: #94a3b8;
+    }
+    
+    /* ========== FEATURES SECTION CARDS - FIXED: Changed from white to dark glass ========== */
+    .features {
+        padding: 80px 0;
+        background: transparent;
+        position: relative;
+    }
+    
+    .section-header {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+    
+    .section-header h2 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 12px;
+    }
+    
+    .section-header p {
+        color: #94a3b8;
+        font-size: 1rem;
+    }
+    
+    .feature-card {
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px 25px;
+        text-align: center;
+        transition: all 0.3s;
+        height: 100%;
+        border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(99, 102, 241, 0.5);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        background: rgba(15, 23, 42, 0.8);
+    }
+    
+    .feature-card-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+    }
+    
+    .feature-card-icon i {
+        font-size: 28px;
+        background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .feature-card h4 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: white;
+    }
+    
+    .feature-card p {
+        color: #94a3b8;
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+    
+    /* ========== EVENTS SECTION CARDS - FIXED: Changed from white to dark glass ========== */
+    .events-section {
+        padding: 80px 0;
+        background: transparent;
+    }
+    
+    .event-card {
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 20px;
+        transition: all 0.3s;
+        height: 100%;
+        border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+    
+    .event-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(99, 102, 241, 0.5);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        background: rgba(15, 23, 42, 0.8);
+    }
+    
+    .event-date {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 20px;
+        margin-bottom: 12px;
+    }
+    
+    .event-date.academic { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+    .event-date.cultural { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+    .event-date.sports { background: rgba(20, 184, 166, 0.2); color: #2dd4bf; }
+    .event-date.workshop { background: rgba(249, 115, 22, 0.2); color: #fb923c; }
+    
+    .event-card h6 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: white;
+    }
+    
+    .event-info p {
+        margin-bottom: 6px;
+        color: #94a3b8;
+        font-size: 0.8rem;
+    }
+    
+    .event-info i {
+        width: 20px;
+        color: var(--primary-light);
+        font-size: 0.75rem;
+    }
+    
+    .btn-event {
+        background: transparent;
+        border: 1px solid rgba(99, 102, 241, 0.4);
+        color: var(--primary-light);
+        padding: 8px;
+        border-radius: 10px;
+        width: 100%;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+        margin-top: 10px;
+    }
+    
+    .btn-event:hover {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%);
+        border-color: var(--primary);
+        color: white;
+    }
+    
+    /* ========== CTA SECTION ========== */
+    .cta-section {
+        padding: 70px 0;
+        background: var(--gradient-1);
+        margin: 40px 0 60px;
+        border-radius: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 70%;
+        height: 200%;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        transform: rotate(25deg);
+        pointer-events: none;
+    }
+    
+    .cta-section::after {
+        content: '';
+        position: absolute;
+        bottom: -50%;
+        left: -20%;
+        width: 60%;
+        height: 150%;
+        background: radial-gradient(circle, rgba(236, 72, 153, 0.2) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    
+    .cta-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        padding: 0 30px;
+    }
+    
+    .cta-content h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 12px;
+    }
+    
+    .cta-content p {
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 25px;
+    }
+    
+    .btn-cta {
+        background: white;
+        color: var(--primary);
+        padding: 12px 35px;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        color: var(--primary);
+    }
+    
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 992px) {
+        .hero-content h1 {
+            font-size: 2.5rem;
+        }
+        
+        .hero-image {
+            margin-top: 40px;
+            animation: none;
+        }
+        
+        .section-header h2 {
+            font-size: 1.8rem;
+        }
+        
+        .cta-content h3 {
+            font-size: 1.5rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .hero {
+            min-height: auto;
+            padding: 50px 0;
+        }
+        
+        .hero-content h1 {
+            font-size: 2rem;
+        }
+        
+        .hero-description {
+            font-size: 1rem;
+        }
+        
+        .btn-primary, .btn-outline {
+            padding: 10px 24px;
+        }
+        
+        .feature-card {
+            margin-bottom: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1>Smart <span>Real-Time</span><br>Event Manager</h1>
+                    <p class="hero-description">
+                        Centralized platform for managing academic, cultural, and sports events. Streamline event scheduling, registration, and attendance tracking.
+                    </p>
+                    <div class="hero-buttons">
+                        {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('login') }}" class="btn-primary">
+                            Get Started <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <a href="{{ url_for('register') }}" class="btn-outline">
+                            Create Account
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('dashboard') }}" class="btn-primary">
+                            Go to Dashboard <i class="fas fa-tachometer-alt"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-image">
+                    <div class="hero-card">
+                        <h4><i class="fas fa-star"></i> Key Features</h4>
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <div class="feature-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div class="feature-text">
+                                    <strong>Centralized Management</strong>
+                                    <span>All events in one place</span>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <div class="feature-text">
+                                    <strong>Real-Time Notifications</strong>
+                                    <span>Instant updates & reminders</span>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="feature-text">
+                                    <strong>Track Participation</strong>
+                                    <span>Attendance & analytics dashboard</span>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="feature-text">
+                                    <strong>Role-Based Access</strong>
+                                    <span>Student, Faculty & Admin roles</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features">
+    <div class="container">
+        <div class="section-header">
+            <h2>Everything You Need</h2>
+            <p>Powerful features to manage campus events seamlessly</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-card-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h4>Centralized Management</h4>
+                    <p>All campus events in one place - academic, cultural, and sports events. Never miss important announcements.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-card-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h4>Real-Time Notifications</h4>
+                    <p>Instant updates and reminders for all registered events. Get notified 24 hours before your events.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-card-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Track Participation</h4>
+                    <p>Monitor attendance and participation through interactive dashboard. See your performance at a glance.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Upcoming Events Section - Only show if user is logged in AND events exist -->
+{% if current_user.is_authenticated and upcoming_events %}
+<section class="events-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Upcoming Events</h2>
+            <p>Join the excitement and be part of something amazing</p>
+        </div>
+        
+        <div class="row">
+            {% for event in upcoming_events %}
+            <div class="col-md-4 mb-4">
+                <div class="event-card">
+                    <span class="event-date {{ event.event_type }}">
+                        {{ event.event_type|title }}
+                    </span>
+                    <h6>{{ event.title }}</h6>
+                    <div class="event-info">
+                        <p><i class="fas fa-calendar"></i> {{ event.start_date.strftime('%B %d, %Y') }}</p>
+                        <p><i class="fas fa-clock"></i> {{ event.start_time.strftime('%I:%M %p') }}</p>
+                        <p><i class="fas fa-map-marker-alt"></i> {{ event.venue }}</p>
+                    </div>
+                    <a href="{{ url_for('event_details', event_id=event.id) }}" class="btn-event">
+                        View Details <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('events') }}" class="btn-outline" style="padding: 10px 28px;">
+                Browse All Events <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- CTA Section -->
+<div class="container">
+    <div class="cta-section">
+        <div class="cta-content">
+            <h3>Ready to Transform Campus Events?</h3>
+            <p>Join students and faculty who already use CampusLink</p>
+            {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('register') }}" class="btn-cta">
+                Get Started Free <i class="fas fa-arrow-right"></i>
+            </a>
+            {% else %}
+            <a href="{{ url_for('dashboard') }}" class="btn-cta">
+                Go to Dashboard <i class="fas fa-tachometer-alt"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

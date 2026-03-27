@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-circle text-primary"></i> My Profile
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center mb-4">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user-circle fa-5x text-primary"></i>
+                        </div>
+                        <h4 class="mt-3">{{ current_user.full_name }}</h4>
+                        <span class="badge bg-info">{{ current_user.role|title }}</span>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="150">Username:</th>
+                                <td>{{ current_user.username }}</td>
+                            </tr>
+                            <tr>
+                                <th>Email:</th>
+                                <td>{{ current_user.email }}</td>
+                            </tr>
+                            <tr>
+                                <th>Full Name:</th>
+                                <td>{{ current_user.full_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Department:</th>
+                                <td>{{ current_user.department or 'Not specified' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Role:</th>
+                                <td>{{ current_user.role|title }}</td>
+                            </tr>
+                            <tr>
+                                <th>Member Since:</th>
+                                <td>{{ current_user.created_at.strftime('%B %d, %Y') if current_user.created_at else 'N/A' }}</td>
+                            </tr>
+                        </table>
+                        
+                        <hr>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="stats-box text-center p-3 bg-light rounded">
+                                    <h5>{{ my_events_count|default(0) }}</h5>
+                                    <p class="mb-0 text-muted">Events Registered</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="stats-box text-center p-3 bg-light rounded">
+                                    <h5>{{ attendance_percentage|default(0) }}%</h5>
+                                    <p class="mb-0 text-muted">Attendance Rate</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-white text-center">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                    <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .profile-avatar i {
+        font-size: 60px;
+        color: white;
+    }
+    .stats-box {
+        transition: transform 0.3s;
+    }
+    .stats-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}

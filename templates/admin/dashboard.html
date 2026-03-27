@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-crown text-warning"></i> Admin Dashboard</h1>
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="dashboard-stats text-center">
+            <i class="fas fa-users fa-3x mb-2"></i>
+            <h3>{{ total_users }}</h3>
+            <p class="mb-0">Total Users</p>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="dashboard-stats text-center" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <i class="fas fa-calendar-alt fa-3x mb-2"></i>
+            <h3>{{ total_events }}</h3>
+            <p class="mb-0">Total Events</p>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="dashboard-stats text-center" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <i class="fas fa-check-circle fa-3x mb-2"></i>
+            <h3>{{ total_registrations }}</h3>
+            <p class="mb-0">Registrations</p>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="dashboard-stats text-center" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <i class="fas fa-user-check fa-3x mb-2"></i>
+            <h3>{{ total_attendance }}</h3>
+            <p class="mb-0">Attendance</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-users"></i> Recent Users</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Department</th>
+                                <th>Registered</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td><span class="badge bg-info">{{ user.role|title }}</span></td>
+                                <td>{{ user.department or 'N/A' }}</td>
+                                <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <a href="{{ url_for('admin_users') }}" class="btn btn-sm btn-primary">Manage All Users →</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-calendar"></i> Recent Events</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Venue</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in recent_events %}
+                            <tr>
+                                <td>{{ event.title }}</td>
+                                <td>{{ event.event_type|title }}</td>
+                                <td>{{ event.venue }}</td>
+                                <td>{{ event.start_date.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <a href="{{ url_for('events') }}" class="btn btn-sm btn-primary">View All Events →</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-2">
+    <a href="{{ url_for('admin_stats') }}" class="btn btn-outline-primary">
+        <i class="fas fa-chart-bar"></i> View Detailed Statistics
+    </a>
+</div>
+{% endblock %}
