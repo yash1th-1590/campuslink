@@ -8,7 +8,8 @@ def send_verification_email(user_email, username, verification_token):
     """Send verification email to user"""
     try:
         
-        verification_url = f"http://{current_app.config['SERVER_NAME']}/verify/{verification_token}"
+        server_name = current_app.config.get('SERVER_NAME', '127.0.0.1:5000')
+        verification_url = f"http://{server_name}/verify/{verification_token}"
         
         subject = "Verify Your Email - CampusLink"
         
@@ -116,7 +117,7 @@ def send_verification_email(user_email, username, verification_token):
         
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
-        msg['From'] = current_app.config['EMAIL_FROM']
+        msg['From'] = current_app.config.get('EMAIL_FROM', 'noreply@campuslink.com')
         msg['To'] = user_email
         
         part1 = MIMEText(text_content, 'plain')
@@ -126,22 +127,36 @@ def send_verification_email(user_email, username, verification_token):
         msg.attach(part2)
         
         
-        print(f"\n📧 VERIFICATION EMAIL")
-        print(f"   To: {user_email}")
-        print(f"   Subject: {subject}")
-        print(f"   Link: {verification_url}")
-        print("=" * 50)
+        email_host = current_app.config.get('EMAIL_HOST')
+        email_port = current_app.config.get('EMAIL_PORT')
+        email_user = current_app.config.get('EMAIL_USER')
+        email_password = current_app.config.get('EMAIL_PASSWORD')
+        
+     
+        if not email_user or not email_password:
+            print(f"\n⚠️ EMAIL NOT CONFIGURED - Would send to: {user_email}")
+            print(f"   Link: {verification_url}")
+            print("   To enable real emails, set EMAIL_USER and EMAIL_PASSWORD in .env file")
+            print("=" * 50)
+            return True
         
         
-        """
-        server = smtplib.SMTP(current_app.config['EMAIL_HOST'], current_app.config['EMAIL_PORT'])
-        server.starttls()
-        server.login(current_app.config['EMAIL_USER'], current_app.config['EMAIL_PASSWORD'])
-        server.send_message(msg)
-        server.quit()
-        """
-        
-        return True
+        try:
+            server = smtplib.SMTP(email_host, email_port)
+            server.starttls()
+            server.login(email_user, email_password)
+            server.send_message(msg)
+            server.quit()
+            print(f"\n✅ Verification email sent successfully to {user_email}")
+            print("=" * 50)
+            return True
+        except Exception as smtp_error:
+            print(f"\n❌ SMTP Error: {smtp_error}")
+            print(f"   Failed to send to {user_email}")
+            print(f"   Link would have been: {verification_url}")
+            print("=" * 50)
+            return False
+            
     except Exception as e:
         print(f"Email error: {e}")
         return False
