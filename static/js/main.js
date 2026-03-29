@@ -1,9 +1,7 @@
-// CampusLink Main JavaScript File
 
-// Wait for DOM to load
 document.addEventListener('DOMContentLoaded', function() {
     
-    // Auto-dismiss alerts after 5 seconds
+    
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(function(alert) {
         setTimeout(function() {
@@ -14,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     });
     
-    // Form validation
+    
     const forms = document.querySelectorAll('form');
     forms.forEach(function(form) {
         form.addEventListener('submit', function(e) {
@@ -26,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     isValid = false;
                     field.classList.add('is-invalid');
                     
-                    // Add error message if not exists
+                    
                     let errorDiv = field.nextElementSibling;
                     if (!errorDiv || !errorDiv.classList.contains('invalid-feedback')) {
                         errorDiv = document.createElement('div');
@@ -45,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!isValid) {
                 e.preventDefault();
-                // Scroll to first error
+                
                 const firstError = document.querySelector('.is-invalid');
                 if (firstError) {
                     firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -54,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Add fade-out class for alerts
+    
     const style = document.createElement('style');
     style.textContent = `
         .fade-out {
@@ -73,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     document.head.appendChild(style);
     
-    // Confirm before cancel registration
+    
     const cancelButtons = document.querySelectorAll('.cancel-registration');
     cancelButtons.forEach(function(button) {
         button.addEventListener('click', function(e) {
@@ -83,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Confirm before deleting event
+    
     const deleteButtons = document.querySelectorAll('.delete-event');
     deleteButtons.forEach(function(button) {
         button.addEventListener('click', function(e) {
@@ -93,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Date picker enhancements
+    
     const dateInputs = document.querySelectorAll('input[type="date"]');
     dateInputs.forEach(function(input) {
         // Set min date to today for start date
@@ -102,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
             input.setAttribute('min', today);
         }
         
-        // Add change event for end date
+        
         input.addEventListener('change', function() {
             const startDate = document.querySelector('#start_date, [name="start_date"]');
             const endDate = document.querySelector('#end_date, [name="end_date"]');
@@ -116,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Live search for events
+    
     const searchInput = document.getElementById('search-events');
     if (searchInput) {
         searchInput.addEventListener('keyup', function() {
@@ -136,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Filter events by type
+    
     const filterButtons = document.querySelectorAll('.filter-btn');
     filterButtons.forEach(function(button) {
         button.addEventListener('click', function() {
@@ -156,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Attendance toggle
+    
     const attendanceToggles = document.querySelectorAll('.attendance-toggle');
     attendanceToggles.forEach(function(toggle) {
         toggle.addEventListener('change', function() {
@@ -164,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const eventId = this.dataset.eventId;
             const isPresent = this.checked;
             
-            // Send AJAX request to update attendance
+            
             fetch('/update-attendance', {
                 method: 'POST',
                 headers: {
@@ -193,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Toast notification function
+    
     function showToast(message, type) {
         const toast = document.createElement('div');
         toast.className = `toast-notification toast-${type}`;
@@ -218,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
     
-    // Add toast styles
+    
     const toastStyle = document.createElement('style');
     toastStyle.textContent = `
         .toast-notification {
@@ -256,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     document.head.appendChild(toastStyle);
     
-    // Smooth scroll to top button
+    
     const scrollTopBtn = document.createElement('button');
     scrollTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
     scrollTopBtn.className = 'scroll-top-btn';
@@ -290,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
     
-    // Add loading state to buttons
+    
     const buttons = document.querySelectorAll('.btn');
     buttons.forEach(function(button) {
         button.addEventListener('click', function(e) {
@@ -308,6 +306,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Console welcome message
+
 console.log('%cCampusLink Smart Event Manager', 'color: #667eea; font-size: 16px; font-weight: bold;');
 console.log('%cReal-time campus event management system', 'color: #764ba2; font-size: 12px;');

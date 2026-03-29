@@ -7,7 +7,7 @@ import secrets
 def send_verification_email(user_email, username, verification_token):
     """Send verification email to user"""
     try:
-        # Build verification URL
+        
         verification_url = f"http://{current_app.config['SERVER_NAME']}/verify/{verification_token}"
         
         subject = "Verify Your Email - CampusLink"
@@ -125,14 +125,14 @@ def send_verification_email(user_email, username, verification_token):
         msg.attach(part1)
         msg.attach(part2)
         
-        # For development - just print (no actual email sending)
+        
         print(f"\n📧 VERIFICATION EMAIL")
         print(f"   To: {user_email}")
         print(f"   Subject: {subject}")
         print(f"   Link: {verification_url}")
         print("=" * 50)
         
-        # Uncomment below to actually send emails (requires SMTP setup)
+        
         """
         server = smtplib.SMTP(current_app.config['EMAIL_HOST'], current_app.config['EMAIL_PORT'])
         server.starttls()

@@ -12,7 +12,6 @@ import socket
 from email_utils import send_verification_email
 import secrets
 
-# Initialize Flask App
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -26,7 +25,7 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# ==================== Admin Required Decorator ====================
+
 
 def admin_required(f):
     @wraps(f)
@@ -37,7 +36,7 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ==================== Create Notification Function ====================
+
 
 def create_notification(user_id, event_id, title, message, notification_type='push'):
     """Create a notification and respect user's email preferences"""
@@ -60,7 +59,7 @@ def create_notification(user_id, event_id, title, message, notification_type='pu
     
     return notification
 
-# ==================== AUTOMATIC REMINDER FUNCTION ====================
+
 
 def send_automatic_reminders():
     with app.app_context():
@@ -108,7 +107,7 @@ reminder_thread = threading.Thread(target=reminder_scheduler, daemon=True)
 reminder_thread.start()
 print("✅ Automatic reminder system started!")
 
-# ==================== Public Routes ====================
+
 
 @app.route('/')
 def index():
@@ -128,7 +127,7 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         
         if user and user.check_password(form.password.data):
-            # Check if email is verified
+            
             if not user.email_verified:
                 flash('Please verify your email address before logging in. Check your inbox for the verification link.', 'warning')
                 return render_template('login.html', form=form, unverified_email=user.email)
@@ -141,7 +140,7 @@ def login():
     
     return render_template('login.html', form=form)
 
-# ==================== Email Verification Routes ====================
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -150,19 +149,19 @@ def register():
     
     form = RegistrationForm()
     if form.validate_on_submit():
-        # Check if username already exists
+        
         existing_user = User.query.filter_by(username=form.username.data).first()
         if existing_user:
             flash('Username already taken. Please choose a different one.', 'danger')
             return render_template('register.html', form=form)
         
-        # Check if email already exists
+    
         existing_email = User.query.filter_by(email=form.email.data).first()
         if existing_email:
             flash('Email already registered. Please use a different email or login.', 'danger')
             return render_template('register.html', form=form)
         
-        # Create user with email_verified = False
+        
         user = User(
             username=form.username.data,
             email=form.email.data,
@@ -174,14 +173,14 @@ def register():
         )
         user.set_password(form.password.data)
         
-        # Generate verification token
+        
         verification_token = user.generate_verification_token()
         
         try:
             db.session.add(user)
             db.session.commit()
             
-            # Send verification email
+            
             send_verification_email(user.email, user.full_name, verification_token)
             
             flash('Registration successful! A verification link has been sent to your email. Please verify your email before logging in.', 'success')
@@ -201,19 +200,19 @@ def verify_email(token):
         flash('Invalid or expired verification link.', 'danger')
         return redirect(url_for('login'))
     
-    # Check if token is expired (24 hours)
+    
     if user.token_created_at and datetime.utcnow() - user.token_created_at > timedelta(hours=24):
         flash('Verification link has expired. Please register again.', 'danger')
         return redirect(url_for('login'))
     
-    # Check if already verified
+    
     if user.email_verified:
         flash('Email already verified. You can login now.', 'info')
         return redirect(url_for('login'))
     
-    # Verify the user
+   
     user.email_verified = True
-    user.verification_token = None  # Clear token after verification
+    user.verification_token = None  
     
     try:
         db.session.commit()
@@ -239,7 +238,7 @@ def resend_verification():
             flash('Email already verified. You can login.', 'info')
             return redirect(url_for('login'))
         
-        # Generate new token
+        
         verification_token = user.generate_verification_token()
         user.token_created_at = datetime.utcnow()
         
@@ -262,7 +261,7 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
 
-# ==================== Dashboard Routes ====================
+
 
 @app.route('/dashboard')
 @login_required
@@ -282,7 +281,7 @@ def dashboard():
         notifications = Notification.query.filter_by(user_id=current_user.id, is_read=False).order_by(Notification.created_at.desc()).limit(5).all()
         return render_template('dashboard_student.html', upcoming_events=upcoming_events, my_events=my_events, notifications=notifications)
 
-# ==================== Event Routes ====================
+
 
 @app.route('/events')
 @login_required
@@ -411,7 +410,7 @@ def cancel_registration(event_id):
         flash(f'Failed to cancel: {str(e)}', 'danger')
     return redirect(url_for('events'))
 
-# ==================== Attendance Routes ====================
+
 
 @app.route('/attendance/<int:event_id>/mark', methods=['GET', 'POST'])
 @login_required
@@ -466,7 +465,7 @@ def send_reminders_manual():
     flash('Reminders sent!', 'success')
     return redirect(url_for('admin_dashboard'))
 
-# ==================== Notification Routes ====================
+
 
 @app.route('/notifications')
 @login_required
@@ -480,7 +479,7 @@ def notifications():
         db.session.rollback()
     return render_template('notifications.html', notifications=notifications)
 
-# ==================== Profile Routes ====================
+
 
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
@@ -509,7 +508,7 @@ def profile():
         attendance_percentage = 0
     return render_template('profile.html', my_events_count=my_events_count, attendance_percentage=int(attendance_percentage), form=form)
 
-# ==================== Admin Routes ====================
+
 
 @app.route('/admin')
 @login_required
@@ -574,7 +573,7 @@ def admin_stats():
     attendance_count = Attendance.query.filter_by(attended=True).count()
     return render_template('admin/stats.html', users_count=users_count, faculty_count=faculty_count, student_count=student_count, admin_count=admin_count, events_count=events_count, upcoming_events=upcoming_events, completed_events=completed_events, registrations_count=registrations_count, attendance_count=attendance_count)
 
-# ==================== Error Handlers ====================
+
 
 @app.errorhandler(404)
 def not_found_error(error):
@@ -585,7 +584,7 @@ def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
 
-# ==================== Run Application ====================
+
 
 if __name__ == '__main__':
     with app.app_context():
