@@ -12,6 +12,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
+    roll_no = db.Column(db.String(50), unique=True, nullable=True)  # New field
     password_hash = db.Column(db.String(200), nullable=False)
     role = db.Column(db.Enum('admin', 'faculty', 'student'), default='student')
     full_name = db.Column(db.String(100), nullable=False)
@@ -20,7 +21,7 @@ class User(UserMixin, db.Model):
     email_notifications = db.Column(db.Boolean, default=True)
     push_notifications = db.Column(db.Boolean, default=True)
     
-    # Email Verification Fields
+    
     email_verified = db.Column(db.Boolean, default=False)
     verification_token = db.Column(db.String(200), unique=True)
     token_created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -57,6 +58,8 @@ class Event(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     event_type = db.Column(db.Enum('academic', 'cultural', 'sports', 'workshop'), nullable=False)
+    participation_type = db.Column(db.Enum('individual', 'group'), default='individual')
+    group_size = db.Column(db.Integer, default=1)
     venue = db.Column(db.String(200))
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date)
@@ -67,8 +70,13 @@ class Event(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     creator = db.relationship('User', foreign_keys=[created_by])
+    event_groups = db.relationship('EventGroup', backref='event', cascade='all, delete-orphan')
     
     def get_registration_count(self):
+        from sqlalchemy import func
+        
+        if self.participation_type == 'group':
+            return GroupRegistration.query.filter_by(event_id=self.id).distinct(GroupRegistration.group_leader_id).count()
         return Registration.query.filter_by(event_id=self.id).count()
     
     def is_full(self):
@@ -94,9 +102,36 @@ class Registration(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     registration_date = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.Enum('pending', 'confirmed', 'cancelled'), default='confirmed')
+    group_registration_id = db.Column(db.Integer, db.ForeignKey('group_registrations.id'))
     
     event = db.relationship('Event')
     student = db.relationship('User')
+    group_registration = db.relationship('GroupRegistration', backref='registrations')
+
+class EventGroup(db.Model):
+    __tablename__ = 'event_groups'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
+    group_size = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class GroupRegistration(db.Model):
+    __tablename__ = 'group_registrations'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
+    group_leader_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    member_roll_no = db.Column(db.String(50), nullable=False)
+    member_name = db.Column(db.String(100))
+    registered_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    event = db.relationship('Event')
+    group_leader = db.relationship('User', foreign_keys=[group_leader_id])
+    
+    __table_args__ = (
+        db.UniqueConstraint('event_id', 'member_roll_no', name='unique_member_per_event'),
+    )
 
 class Attendance(db.Model):
     __tablename__ = 'attendance'

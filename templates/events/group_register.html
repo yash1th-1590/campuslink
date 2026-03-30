@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Register Group - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-users text-primary"></i> Register Group for {{ event.title }}
+                </h5>
+                <p class="text-muted mb-0 mt-2">
+                    <strong>Group Size:</strong> {{ group_size }} members (including you)
+                </p>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Important:</strong> You are registering as the group leader. Please enter details for the other {{ group_size - 1 }} member(s) of your group.
+                    <br>
+                    All members must be registered users with verified email addresses.
+                </div>
+                
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-4">
+                        <h6><i class="fas fa-user-check text-success"></i> Group Leader (You)</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Roll Number</th>
+                                <td>{{ current_user.roll_no or 'Not set' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Full Name</th>
+                                <td>{{ current_user.full_name }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <h6 class="mb-3"><i class="fas fa-user-friends text-primary"></i> Group Members</h6>
+                    
+                    {% for member_form in form.members %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6>Member {{ loop.index }}</h6>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        {{ member_form.roll_no.label(class="form-label") }}
+                                        {{ member_form.roll_no(class="form-control", placeholder="Enter roll number") }}
+                                        {% if member_form.roll_no.errors %}
+                                            {% for error in member_form.roll_no.errors %}
+                                                <div class="text-danger">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        {{ member_form.full_name.label(class="form-label") }}
+                                        {{ member_form.full_name(class="form-control", placeholder="Enter full name") }}
+                                        {% if member_form.full_name.errors %}
+                                            {% for error in member_form.full_name.errors %}
+                                                <div class="text-danger">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Please ensure:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>All members have registered on CampusLink</li>
+                            <li>All members have verified their email addresses</li>
+                            <li>No member is already registered for this event (individually or in another group)</li>
+                            <li>All roll numbers are unique and valid</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('event_details', event_id=event.id) }}" class="btn btn-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -33,6 +33,17 @@
                     </div>
                     
                     <div class="mb-3">
+                        {{ form.roll_no.label(class="form-label") }}
+                        {{ form.roll_no(class="form-control", placeholder="Enter roll number") }}
+                        <small class="text-muted">Your unique roll number (will be used for group registrations)</small>
+                        {% if form.roll_no.errors %}
+                            {% for error in form.roll_no.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
                         {{ form.full_name.label(class="form-label") }}
                         {{ form.full_name(class="form-control", placeholder="Enter full name") }}
                         {% if form.full_name.errors %}
@@ -60,6 +71,7 @@
                     <div class="mb-3">
                         {{ form.password.label(class="form-label") }}
                         {{ form.password(class="form-control", placeholder="Enter password") }}
+                        <small class="text-muted">Password must be at least 6 characters and contain at least one letter and one number</small>
                         {% if form.password.errors %}
                             {% for error in form.password.errors %}
                                 <div class="text-danger">{{ error }}</div>

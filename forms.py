@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SelectField, IntegerField, DateField, TimeField, PasswordField, SubmitField, BooleanField
-from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError, Regexp, NumberRange
+from wtforms import StringField, TextAreaField, SelectField, IntegerField, DateField, TimeField, PasswordField, SubmitField, BooleanField, FieldList, FormField
+from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError, Regexp, NumberRange, Optional
 from models import User
 import re
 import socket
@@ -29,6 +29,12 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[
         DataRequired(message='Email is required.'),
         Email(message='Please enter a valid email address. (Example: name@domain.com)')
+    ])
+    
+    roll_no = StringField('Roll Number', validators=[
+        DataRequired(message='Roll number is required.'),
+        Length(min=3, max=50, message='Roll number must be between 3 and 50 characters.'),
+        Regexp(r'^[a-zA-Z0-9_-]+$', message='Roll number can only contain letters, numbers, hyphens, and underscores.')
     ])
     
     password = PasswordField('Password', validators=[
@@ -88,6 +94,21 @@ class RegistrationForm(FlaskForm):
         for pattern in fake_patterns:
             if pattern in email_lower:
                 raise ValidationError('Please use a real email address. Temporary/fake emails are not allowed.')
+    
+    def validate_roll_no(self, roll_no):
+        user = User.query.filter_by(roll_no=roll_no.data).first()
+        if user:
+            raise ValidationError('Roll number already registered. Please contact admin if this is yours.')
+
+class MemberForm(FlaskForm):
+    roll_no = StringField('Member Roll Number', validators=[
+        DataRequired(message='Member roll number is required.'),
+        Length(min=3, max=50, message='Roll number must be between 3 and 50 characters.')
+    ])
+    full_name = StringField('Member Full Name', validators=[
+        DataRequired(message='Member full name is required.'),
+        Length(min=2, max=100, message='Name must be between 2 and 100 characters.')
+    ])
 
 class EventForm(FlaskForm):
     title = StringField('Event Title', validators=[
@@ -96,6 +117,7 @@ class EventForm(FlaskForm):
     ])
     
     description = TextAreaField('Description', validators=[
+        Optional(),
         Length(max=2000, message='Description cannot exceed 2000 characters.')
     ])
     
@@ -108,6 +130,21 @@ class EventForm(FlaskForm):
         DataRequired(message='Please select an event type.')
     ])
     
+    participation_type = SelectField('Participation Type', choices=[
+        ('individual', 'Individual'),
+        ('group', 'Group')
+    ], default='individual', validators=[
+        DataRequired(message='Please select participation type.')
+    ])
+    
+    group_size = SelectField('Group Size', choices=[
+        (2, '2 Members'),
+        (3, '3 Members'),
+        (4, '4 Members')
+    ], default=2, validators=[
+        Optional()
+    ])
+    
     venue = StringField('Venue', validators=[
         DataRequired(message='Venue is required.'),
         Length(max=200, message='Venue name is too long.')
@@ -117,7 +154,9 @@ class EventForm(FlaskForm):
         DataRequired(message='Start date is required.')
     ])
     
-    end_date = DateField('End Date', format='%Y-%m-%d')
+    end_date = DateField('End Date', format='%Y-%m-%d', validators=[
+        Optional()
+    ])
     
     start_time = TimeField('Start Time', format='%H:%M', validators=[
         DataRequired(message='Start time is required.')
@@ -148,4 +187,8 @@ class EventForm(FlaskForm):
         if self.start_date.data == self.end_date.data:
             if self.start_time.data and end_time.data:
                 if end_time.data <= self.start_time.data:
-                    raise ValidationError('End time must be after start time.')
+                    raise ValidationError('End time must be after start time when start and end dates are the same.')
+
+class GroupRegistrationForm(FlaskForm):
+    members = FieldList(FormField(MemberForm), min_entries=1)
+    submit = SubmitField('Register Group')

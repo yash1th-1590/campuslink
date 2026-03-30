@@ -26,7 +26,8 @@
                     
                     <div class="mb-3">
                         {{ form.description.label(class="form-label") }}
-                        {{ form.description(class="form-control", rows=4, placeholder="Event description...") }}
+                        {{ form.description(class="form-control", rows=4, placeholder="Event description (optional)...") }}
+                        <small class="text-muted">Description is optional</small>
                     </div>
                     
                     <div class="row">
@@ -42,12 +43,34 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
+                            {{ form.participation_type.label(class="form-label") }}
+                            {{ form.participation_type(class="form-select", id="participation_type") }}
+                        </div>
+                        <div class="col-md-6 mb-3" id="group_size_div" style="display: none;">
+                            {{ form.group_size.label(class="form-label") }}
+                            {{ form.group_size(class="form-select") }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
                             {{ form.start_date.label(class="form-label") }}
                             {{ form.start_date(class="form-control", type="date") }}
+                            {% if form.start_date.errors %}
+                                {% for error in form.start_date.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
                         </div>
                         <div class="col-md-6 mb-3">
                             {{ form.end_date.label(class="form-label") }}
                             {{ form.end_date(class="form-control", type="date") }}
+                            <small class="text-muted">Leave blank for single day event</small>
+                            {% if form.end_date.errors %}
+                                {% for error in form.end_date.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
                         </div>
                     </div>
                     
@@ -55,16 +78,29 @@
                         <div class="col-md-6 mb-3">
                             {{ form.start_time.label(class="form-label") }}
                             {{ form.start_time(class="form-control", type="time") }}
+                            {% if form.start_time.errors %}
+                                {% for error in form.start_time.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
                         </div>
                         <div class="col-md-6 mb-3">
                             {{ form.end_time.label(class="form-label") }}
                             {{ form.end_time(class="form-control", type="time") }}
+                            {% if form.end_time.errors %}
+                                {% for error in form.end_time.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
                         </div>
                     </div>
                     
                     <div class="mb-3">
                         {{ form.max_participants.label(class="form-label") }}
                         {{ form.max_participants(class="form-control", type="number", min="1", max="1000") }}
+                        <small class="text-muted">
+                            For group events, this is the maximum number of groups allowed.
+                        </small>
                     </div>
                     
                     <div class="d-grid">
@@ -75,4 +111,22 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const participationType = document.getElementById('participation_type');
+        const groupSizeDiv = document.getElementById('group_size_div');
+        
+        function toggleGroupSize() {
+            if (participationType.value === 'group') {
+                groupSizeDiv.style.display = 'block';
+            } else {
+                groupSizeDiv.style.display = 'none';
+            }
+        }
+        
+        participationType.addEventListener('change', toggleGroupSize);
+        toggleGroupSize();
+    });
+</script>
 {% endblock %}
