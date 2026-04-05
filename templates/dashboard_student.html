@@ -21,58 +21,72 @@
     </div>
 </div>
 
+<!-- Student Coordinator Banner -->
+{% if not pending_coordinator_app %}
+<div class="card mb-4" style="border: 1px solid rgba(250,204,21,0.4); background: rgba(250,204,21,0.06);">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <h6 class="mb-1"><i class="fas fa-star text-warning"></i> Want to organise events?</h6>
+            <p class="text-muted mb-0 small">Apply to become a Student Coordinator and start creating events on campus.</p>
+        </div>
+        <a href="{{ url_for('apply_coordinator') }}" class="btn btn-warning btn-sm ms-3">
+            Apply Now <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info mb-4">
+    <i class="fas fa-clock"></i>
+    <strong>Coordinator Application Pending</strong> — Your application is under review by admin. You'll be notified once a decision is made.
+</div>
+{% endif %}
+
 <div class="row">
     <div class="col-lg-6 mb-4">
         <div class="card">
             <div class="card-header bg-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-calendar-plus text-primary"></i> Upcoming Events
-                </h5>
+                <h5 class="mb-0"><i class="fas fa-calendar-plus text-primary"></i> Upcoming Events For You</h5>
             </div>
             <div class="card-body">
                 {% if upcoming_events %}
                     {% for event in upcoming_events %}
-                        <div class="border-bottom pb-3 mb-3">
-                            <h6>{{ event.title }}</h6>
-                            <p class="small text-muted mb-1">
-                                <i class="fas fa-map-marker-alt"></i> {{ event.venue }} |
-                                <i class="fas fa-calendar"></i> {{ event.start_date.strftime('%b %d, %Y') }}
-                            </p>
-                            <span class="badge-upcoming">Upcoming</span>
-                            <a href="{{ url_for('event_details', event_id=event.id) }}" 
-                               class="btn btn-sm btn-outline-primary float-end">View Details</a>
-                        </div>
+                    <div class="border-bottom pb-3 mb-3">
+                        <h6>{{ event.title }}</h6>
+                        <p class="small text-muted mb-1">
+                            <i class="fas fa-map-marker-alt"></i> {{ event.venue }} |
+                            <i class="fas fa-calendar"></i> {{ event.start_date.strftime('%b %d, %Y') }}
+                        </p>
+                        <span class="badge-upcoming">Upcoming</span>
+                        <a href="{{ url_for('event_details', event_id=event.id) }}"
+                           class="btn btn-sm btn-outline-primary float-end">View Details</a>
+                    </div>
                     {% endfor %}
                 {% else %}
-                    <p class="text-muted text-center">No upcoming events available.</p>
+                    <p class="text-muted text-center">No upcoming events for your profile.</p>
                 {% endif %}
                 <a href="{{ url_for('events') }}" class="btn btn-link">View All Events →</a>
             </div>
         </div>
     </div>
-    
+
     <div class="col-lg-6 mb-4">
         <div class="card">
             <div class="card-header bg-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-check-circle text-success"></i> My Registered Events
-                </h5>
+                <h5 class="mb-0"><i class="fas fa-check-circle text-success"></i> My Registered Events</h5>
             </div>
             <div class="card-body">
                 {% if my_events %}
                     {% for event in my_events %}
-                        <div class="border-bottom pb-3 mb-3">
-                            <h6>{{ event.title }}</h6>
-                            <p class="small text-muted mb-1">
-                                <i class="fas fa-map-marker-alt"></i> {{ event.venue }} |
-                                <i class="fas fa-calendar"></i> {{ event.start_date.strftime('%b %d, %Y') }}
-                            </p>
-                            <span class="badge-{{ event.get_status() }}">
-                                {{ event.get_status()|title }}
-                            </span>
-                            <a href="{{ url_for('event_details', event_id=event.id) }}" 
-                               class="btn btn-sm btn-outline-primary float-end">View</a>
-                        </div>
+                    <div class="border-bottom pb-3 mb-3">
+                        <h6>{{ event.title }}</h6>
+                        <p class="small text-muted mb-1">
+                            <i class="fas fa-map-marker-alt"></i> {{ event.venue }} |
+                            <i class="fas fa-calendar"></i> {{ event.start_date.strftime('%b %d, %Y') }}
+                        </p>
+                        <span class="badge-{{ event.get_status() }}">{{ event.get_status()|title }}</span>
+                        <a href="{{ url_for('event_details', event_id=event.id) }}"
+                           class="btn btn-sm btn-outline-primary float-end">View</a>
+                    </div>
                     {% endfor %}
                 {% else %}
                     <p class="text-muted text-center">You haven't registered for any events yet.</p>
@@ -88,17 +102,15 @@
 {% if notifications %}
 <div class="card">
     <div class="card-header bg-white">
-        <h5 class="mb-0">
-            <i class="fas fa-bell"></i> Recent Notifications
-        </h5>
+        <h5 class="mb-0"><i class="fas fa-bell"></i> Recent Notifications</h5>
     </div>
     <div class="card-body">
         {% for notif in notifications %}
-            <div class="alert alert-info mb-2">
-                <strong>{{ notif.title }}</strong><br>
-                {{ notif.message }}
-                <small class="text-muted d-block mt-1">{{ notif.created_at.strftime('%b %d, %Y %H:%M') }}</small>
-            </div>
+        <div class="alert alert-info mb-2">
+            <strong>{{ notif.title }}</strong><br>
+            {{ notif.message }}
+            <small class="text-muted d-block mt-1">{{ notif.created_at.strftime('%b %d, %Y %H:%M') }}</small>
+        </div>
         {% endfor %}
         <a href="{{ url_for('notifications') }}" class="btn btn-link">View All →</a>
     </div>

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Coordinator Applications{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-user-graduate text-warning"></i> Coordinator Applications</h1>
+
+{% if pending %}
+<div class="card mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-clock text-warning"></i> Pending Applications</h5>
+        <span class="badge bg-warning text-dark">{{ pending|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        {% for app in pending %}
+        <div class="p-4 border-bottom">
+            <div class="row align-items-center">
+                <div class="col-md-7">
+                    <h6 class="mb-1">
+                        <i class="fas fa-user text-primary"></i>
+                        {{ app.user.full_name }}
+                        <span class="text-muted small">(@{{ app.user.username }})</span>
+                    </h6>
+                    <p class="text-muted small mb-1">
+                        {{ app.user.get_college_display() }} &bull;
+                        {{ app.user.branch or 'N/A' }} &bull;
+                        {{ app.user.get_year_display() }} &bull;
+                        {{ app.user.email }}
+                    </p>
+                    <div class="mt-2 p-2 rounded" style="background: rgba(99,102,241,0.08); border-left: 3px solid #6366f1;">
+                        <small><strong>Reason:</strong> {{ app.reason }}</small>
+                    </div>
+                    <small class="text-muted">Applied: {{ app.applied_at.strftime('%B %d, %Y at %I:%M %p') }}</small>
+                </div>
+                <div class="col-md-5 text-end">
+                    <form method="POST" action="{{ url_for('review_coordinator_application', app_id=app.id) }}"
+                          style="display:inline;">
+                        <input type="hidden" name="decision" value="approve">
+                        <button type="submit" class="btn btn-success btn-sm me-2"
+                                onclick="return confirm('Approve {{ app.user.full_name }} as Student Coordinator?')">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('review_coordinator_application', app_id=app.id) }}"
+                          style="display:inline;">
+                        <input type="hidden" name="decision" value="reject">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('Reject this application?')">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="alert alert-success">
+    <i class="fas fa-check-circle"></i> No pending applications.
+</div>
+{% endif %}
+
+{% if reviewed %}
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="fas fa-history text-secondary"></i> Recently Reviewed</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Applicant</th>
+                        <th>College / Branch</th>
+                        <th>Applied</th>
+                        <th>Decision</th>
+                        <th>Reviewed By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in reviewed %}
+                    <tr>
+                        <td>{{ app.user.full_name }} <small class="text-muted">(@{{ app.user.username }})</small></td>
+                        <td>{{ app.user.get_college_display() }} / {{ app.user.branch or 'N/A' }}</td>
+                        <td>{{ app.applied_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if app.status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% else %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ app.reviewer.username if app.reviewer else 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="mt-3">
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+{% endblock %}

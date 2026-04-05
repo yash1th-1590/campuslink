@@ -1,311 +1,143 @@
+document.addEventListener('DOMContentLoaded', function () {
 
-document.addEventListener('DOMContentLoaded', function() {
-    
-    
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(function(alert) {
-        setTimeout(function() {
-            alert.classList.add('fade-out');
-            setTimeout(function() {
-                alert.remove();
-            }, 500);
+    // ── Auto-dismiss alerts ──
+    document.querySelectorAll('.alert').forEach(function (alert) {
+        setTimeout(function () {
+            alert.style.transition = 'opacity 0.5s';
+            alert.style.opacity = '0';
+            setTimeout(function () { alert.remove(); }, 500);
         }, 5000);
     });
-    
-    
-    const forms = document.querySelectorAll('form');
-    forms.forEach(function(form) {
-        form.addEventListener('submit', function(e) {
+
+    // ── Form validation ──
+    document.querySelectorAll('form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
             const requiredFields = form.querySelectorAll('[required]');
             let isValid = true;
-            
-            requiredFields.forEach(function(field) {
+            requiredFields.forEach(function (field) {
                 if (!field.value.trim()) {
                     isValid = false;
                     field.classList.add('is-invalid');
-                    
-                    
-                    let errorDiv = field.nextElementSibling;
-                    if (!errorDiv || !errorDiv.classList.contains('invalid-feedback')) {
-                        errorDiv = document.createElement('div');
-                        errorDiv.className = 'invalid-feedback';
-                        errorDiv.textContent = 'This field is required.';
-                        field.parentNode.insertBefore(errorDiv, field.nextSibling);
-                    }
+                    field.style.borderColor = 'var(--danger)';
                 } else {
                     field.classList.remove('is-invalid');
-                    const errorDiv = field.nextElementSibling;
-                    if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
-                        errorDiv.remove();
-                    }
+                    field.style.borderColor = '';
                 }
             });
-            
             if (!isValid) {
                 e.preventDefault();
-                
                 const firstError = document.querySelector('.is-invalid');
-                if (firstError) {
-                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
+                if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
     });
-    
-    
-    const style = document.createElement('style');
-    style.textContent = `
-        .fade-out {
-            opacity: 0;
-            transition: opacity 0.5s ease-out;
-        }
-        .is-invalid {
-            border-color: #dc3545 !important;
-        }
-        .invalid-feedback {
-            display: block;
-            color: #dc3545;
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
-    `;
-    document.head.appendChild(style);
-    
-    
-    const cancelButtons = document.querySelectorAll('.cancel-registration');
-    cancelButtons.forEach(function(button) {
-        button.addEventListener('click', function(e) {
-            if (!confirm('Are you sure you want to cancel your registration?')) {
-                e.preventDefault();
-            }
-        });
-    });
-    
-    
-    const deleteButtons = document.querySelectorAll('.delete-event');
-    deleteButtons.forEach(function(button) {
-        button.addEventListener('click', function(e) {
-            if (!confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
-                e.preventDefault();
-            }
-        });
-    });
-    
-    
-    const dateInputs = document.querySelectorAll('input[type="date"]');
-    dateInputs.forEach(function(input) {
-        // Set min date to today for start date
+
+    // ── Date inputs: set min to today ──
+    document.querySelectorAll('input[type="date"]').forEach(function (input) {
         if (input.id === 'start_date' || input.name === 'start_date') {
-            const today = new Date().toISOString().split('T')[0];
-            input.setAttribute('min', today);
+            input.setAttribute('min', new Date().toISOString().split('T')[0]);
         }
-        
-        
-        input.addEventListener('change', function() {
+        input.addEventListener('change', function () {
             const startDate = document.querySelector('#start_date, [name="start_date"]');
             const endDate = document.querySelector('#end_date, [name="end_date"]');
-            
-            if (startDate && endDate && endDate.value) {
-                if (endDate.value < startDate.value) {
-                    alert('End date cannot be before start date!');
-                    endDate.value = '';
-                }
+            if (startDate && endDate && endDate.value && endDate.value < startDate.value) {
+                alert('End date cannot be before start date!');
+                endDate.value = '';
             }
         });
     });
-    
-    
-    const searchInput = document.getElementById('search-events');
-    if (searchInput) {
-        searchInput.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const eventCards = document.querySelectorAll('.event-card');
-            
-            eventCards.forEach(function(card) {
-                const title = card.querySelector('.card-title').textContent.toLowerCase();
-                const description = card.querySelector('.card-text')?.textContent.toLowerCase() || '';
-                
-                if (title.includes(searchTerm) || description.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-    }
-    
-    
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    filterButtons.forEach(function(button) {
-        button.addEventListener('click', function() {
-            const filter = this.dataset.filter;
-            const eventCards = document.querySelectorAll('.event-card');
-            
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-            
-            eventCards.forEach(function(card) {
-                if (filter === 'all' || card.dataset.type === filter) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-    });
-    
-    
-    const attendanceToggles = document.querySelectorAll('.attendance-toggle');
-    attendanceToggles.forEach(function(toggle) {
-        toggle.addEventListener('change', function() {
-            const studentId = this.dataset.studentId;
-            const eventId = this.dataset.eventId;
-            const isPresent = this.checked;
-            
-            
-            fetch('/update-attendance', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    event_id: eventId,
-                    student_id: studentId,
-                    attended: isPresent
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Attendance updated successfully!', 'success');
-                } else {
-                    showToast('Error updating attendance', 'error');
-                    this.checked = !isPresent;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Error updating attendance', 'error');
-                this.checked = !isPresent;
-            });
-        });
-    });
-    
-    
-    function showToast(message, type) {
+
+    // ── Toast notification system ──
+    window.showToast = function (message, type = 'success') {
         const toast = document.createElement('div');
-        toast.className = `toast-notification toast-${type}`;
+        toast.className = `cl-toast cl-toast-${type}`;
         toast.innerHTML = `
-            <div class="toast-content">
-                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-                <span>${message}</span>
-            </div>
-        `;
-        
+            <div style="display:flex;align-items:center;gap:10px;">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"
+                   style="color:${type === 'success' ? 'var(--success)' : 'var(--danger)'};font-size:1rem;"></i>
+                <span style="font-size:0.875rem;font-weight:500;">${message}</span>
+            </div>`;
         document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.classList.add('show');
-        }, 100);
-        
+        setTimeout(() => toast.classList.add('show'), 100);
         setTimeout(() => {
             toast.classList.remove('show');
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
-        }, 3000);
-    }
-    
-    
-    const toastStyle = document.createElement('style');
-    toastStyle.textContent = `
-        .toast-notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: white;
-            border-radius: 8px;
-            padding: 12px 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            transform: translateX(400px);
-            transition: transform 0.3s ease-out;
-            z-index: 1000;
-        }
-        .toast-notification.show {
-            transform: translateX(0);
-        }
-        .toast-success {
-            border-left: 4px solid #28a745;
-        }
-        .toast-error {
-            border-left: 4px solid #dc3545;
-        }
-        .toast-content {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .toast-success i {
-            color: #28a745;
-        }
-        .toast-error i {
-            color: #dc3545;
-        }
-    `;
-    document.head.appendChild(toastStyle);
-    
-    
-    const scrollTopBtn = document.createElement('button');
-    scrollTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
-    scrollTopBtn.className = 'scroll-top-btn';
-    scrollTopBtn.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        cursor: pointer;
-        display: none;
-        z-index: 999;
-        transition: all 0.3s;
-    `;
-    
-    document.body.appendChild(scrollTopBtn);
-    
-    window.addEventListener('scroll', function() {
-        if (window.pageYOffset > 300) {
-            scrollTopBtn.style.display = 'block';
-        } else {
-            scrollTopBtn.style.display = 'none';
-        }
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    };
+
+    // ── Confirm delete buttons ──
+    document.querySelectorAll('[data-confirm]').forEach(function (el) {
+        el.addEventListener('click', function (e) {
+            if (!confirm(this.dataset.confirm)) e.preventDefault();
+        });
     });
-    
-    scrollTopBtn.addEventListener('click', function() {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-    
-    
-    const buttons = document.querySelectorAll('.btn');
-    buttons.forEach(function(button) {
-        button.addEventListener('click', function(e) {
-            if (this.type === 'submit') {
-                const originalText = this.innerHTML;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-                this.disabled = true;
-                
+
+    // ── Submit button loading state ──
+    document.querySelectorAll('form').forEach(function (form) {
+        form.addEventListener('submit', function () {
+            const submitBtn = form.querySelector('[type="submit"]');
+            if (submitBtn && !form.querySelector('.is-invalid')) {
+                const orig = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Please wait...';
+                submitBtn.disabled = true;
                 setTimeout(() => {
-                    this.innerHTML = originalText;
-                    this.disabled = false;
-                }, 3000);
+                    submitBtn.innerHTML = orig;
+                    submitBtn.disabled = false;
+                }, 8000);
             }
         });
     });
+
+    // ── Drag and drop for file upload ──
+    document.querySelectorAll('.drop-zone').forEach(function (zone) {
+        const input = zone.querySelector('input[type="file"]');
+
+        zone.addEventListener('click', () => input && input.click());
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zone.classList.add('dragover');
+        });
+        zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('dragover');
+            if (input && e.dataTransfer.files.length) {
+                input.files = e.dataTransfer.files;
+                updateDropZone(zone, e.dataTransfer.files[0]);
+            }
+        });
+        if (input) {
+            input.addEventListener('change', function () {
+                if (this.files.length) updateDropZone(zone, this.files[0]);
+            });
+        }
+    });
+
+    function updateDropZone(zone, file) {
+        const label = zone.querySelector('.drop-zone-label');
+        if (label) {
+            label.innerHTML = `<i class="fas fa-file-check me-2" style="color:var(--success);"></i>
+                <strong>${file.name}</strong>
+                <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px;">${(file.size / 1024).toFixed(1)} KB</div>`;
+        }
+        zone.style.borderColor = 'var(--success)';
+        zone.style.background = 'rgba(16,185,129,0.05)';
+    }
+
+    // ── Topbar search (client-side event filter if on events page) ──
+    const searchInput = document.querySelector('.topbar-search input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            const term = this.value.toLowerCase();
+            document.querySelectorAll('.event-search-item').forEach(function (item) {
+                const title = item.dataset.title || '';
+                item.closest('.col-md-6, .col-xl-4') &&
+                    (item.closest('.col-md-6, .col-xl-4').style.display =
+                        title.toLowerCase().includes(term) ? '' : 'none');
+            });
+        });
+    }
+
+    console.log('%cCampusLink', 'color:#5b4cdb;font-size:18px;font-weight:800;');
+    console.log('%cSmart Real-Time Event Manager', 'color:#f43f7f;font-size:12px;');
 });
-
-
-console.log('%cCampusLink Smart Event Manager', 'color: #667eea; font-size: 16px; font-weight: bold;');
-console.log('%cReal-time campus event management system', 'color: #764ba2; font-size: 12px;');

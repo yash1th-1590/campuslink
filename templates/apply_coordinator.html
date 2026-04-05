@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Apply to become Student Coordinator{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-star text-warning"></i> Apply to Become a Student Coordinator
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-info">
+                    <strong>What is a Student Coordinator?</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Can create and manage campus events</li>
+                        <li>Must work with a Faculty Coordinator for every event</li>
+                        <li>Can add other co-organizers to events</li>
+                        <li>Your application will be reviewed by an admin</li>
+                    </ul>
+                </div>
+
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.reason.label(class="form-label fw-bold") }}
+                        {{ form.reason(class="form-control", rows=5,
+                            placeholder="Describe why you want to be a Student Coordinator and what events you plan to organise...") }}
+                        <small class="text-muted">Minimum 20 characters.</small>
+                        {% for error in form.reason.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-link">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

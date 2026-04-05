@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Re-upload Receipt - {{ event.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .drop-zone {
+        border: 2px dashed rgba(99,102,241,0.5);
+        border-radius: 12px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: rgba(99,102,241,0.05);
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+        border-color: #6366f1;
+        background: rgba(99,102,241,0.1);
+    }
+    .drop-zone i { font-size: 2.5rem; color: #6366f1; margin-bottom: 10px; }
+    .drop-zone p { color: #94a3b8; margin: 0; }
+    .file-preview { margin-top: 12px; font-size: 0.9rem; color: #a5b4fc; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-redo text-warning"></i> Re-upload Payment Receipt
+                </h5>
+                <p class="text-muted small mb-0">{{ event.title }}</p>
+            </div>
+            <div class="card-body p-4">
+
+                {% if registration.payment_rejection_note %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-times-circle"></i>
+                    <strong>Previous receipt was rejected:</strong>
+                    {{ registration.payment_rejection_note }}
+                </div>
+                {% endif %}
+
+                <!-- Show QR again for convenience -->
+                {% if event.payment_qr_path %}
+                <div class="text-center mb-4">
+                    <p class="text-muted small">Scan again to make payment if needed</p>
+                    <img src="{{ url_for('serve_qr', filename=event.payment_qr_path) }}"
+                         style="max-width:160px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                    <p class="mt-2 fw-bold" style="font-size:1.3rem; color:#6366f1;">
+                        ₹{{ event.payment_amount }}
+                    </p>
+                    {% if event.payment_note %}
+                        <small class="text-muted">{{ event.payment_note }}</small>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <form method="POST" action="" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+
+                    <div class="drop-zone" id="dropZone" onclick="document.getElementById('receipt').click()">
+                        <i class="fas fa-cloud-upload-alt d-block"></i>
+                        <p class="mt-2">Drag & drop your new receipt, or <strong>click to browse</strong></p>
+                        <p class="small">Accepted: JPG, PNG, PDF — Max 5MB</p>
+                        <div class="file-preview" id="filePreview"></div>
+                    </div>
+                    <input type="file" name="receipt" id="receipt"
+                           accept=".jpg,.jpeg,.png,.pdf" style="display:none;" required>
+                    {% for error in form.receipt.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-warning" id="submitBtn" disabled>
+                            <i class="fas fa-upload"></i> Submit New Receipt
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('event_details', event_id=event.id) }}" class="btn btn-link text-muted">
+                        <i class="fas fa-arrow-left"></i> Back to Event
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('receipt');
+const filePreview = document.getElementById('filePreview');
+const submitBtn = document.getElementById('submitBtn');
+
+fileInput.addEventListener('change', function () { updatePreview(this.files[0]); });
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', function (e) {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        const dt = new DataTransfer(); dt.items.add(file);
+        fileInput.files = dt.files; updatePreview(file);
+    }
+});
+
+function updatePreview(file) {
+    if (!file) return;
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowed.includes(file.type)) {
+        filePreview.innerHTML = '<span class="text-danger">❌ Invalid file type.</span>';
+        submitBtn.disabled = true; return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+        filePreview.innerHTML = '<span class="text-danger">❌ File too large (max 5MB).</span>';
+        submitBtn.disabled = true; return;
+    }
+    const icon = file.type === 'application/pdf' ? '📄' : '🖼️';
+    filePreview.innerHTML = `${icon} <strong>${file.name}</strong> (${(file.size/1024).toFixed(1)} KB) ✅`;
+    submitBtn.disabled = false;
+}
+</script>
+{% endblock %}

@@ -1,162 +1,349 @@
 {% extends "base.html" %}
 {% block title %}{{ event.title }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .payment-status-pending  { background:#fef9c3; color:#713f12; padding:3px 10px; border-radius:20px; font-size:.78rem; font-weight:600; }
+    .payment-status-approved { background:#d1fae5; color:#065f46; padding:3px 10px; border-radius:20px; font-size:.78rem; font-weight:600; }
+    .payment-status-rejected { background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:20px; font-size:.78rem; font-weight:600; }
+    .payment-status-not_required { background:#e0e7ff; color:#3730a3; padding:3px 10px; border-radius:20px; font-size:.78rem; font-weight:600; }
+    .verify-modal .modal-content { background:#1e1b4b; color:white; border:1px solid rgba(99,102,241,0.3); }
+    .btn-xs { padding: 2px 8px; font-size: 0.75rem; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-lg-8">
         <div class="card mb-4">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
                     <h2>{{ event.title }}</h2>
-                    <span class="badge-{{ event.get_status() }} fs-6">
-                        {{ event.get_status()|title }}
-                    </span>
+                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                        <span class="badge-{{ event.get_status() }} fs-6">{{ event.get_status()|title }}</span>
+                        {% if event.requires_payment %}
+                            <span class="badge bg-warning text-dark fs-6">
+                                <i class="fas fa-rupee-sign"></i> &#8377;{{ event.payment_amount }}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success fs-6">Free</span>
+                        {% endif %}
+                    </div>
                 </div>
-                
+
                 <div class="row mb-4">
                     <div class="col-md-6">
-                        <p><i class="fas fa-calendar"></i> <strong>Date:</strong> 
+                        <p><i class="fas fa-calendar text-primary"></i> <strong>Date:</strong>
                             {{ event.start_date.strftime('%B %d, %Y') }}
                             {% if event.end_date and event.end_date != event.start_date %}
                                 to {{ event.end_date.strftime('%B %d, %Y') }}
                             {% endif %}
                         </p>
-                        <p><i class="fas fa-clock"></i> <strong>Time:</strong> 
+                        <p><i class="fas fa-clock text-primary"></i> <strong>Time:</strong>
                             {{ event.start_time.strftime('%I:%M %p') }} - {{ event.end_time.strftime('%I:%M %p') }}
                         </p>
-                        <p><i class="fas fa-map-marker-alt"></i> <strong>Venue:</strong> {{ event.venue }}</p>
+                        <p><i class="fas fa-map-marker-alt text-primary"></i> <strong>Venue:</strong> {{ event.venue }}</p>
                     </div>
                     <div class="col-md-6">
-                        <p><i class="fas fa-tag"></i> <strong>Type:</strong> {{ event.event_type|title }}</p>
-                        <p><i class="fas fa-users"></i> <strong>Participation:</strong> {{ event.participation_type|title }}
-                            {% if event.participation_type == 'group' %}
-                                ({{ event.group_size }} members per group)
-                            {% endif %}
+                        <p><i class="fas fa-tag text-primary"></i> <strong>Type:</strong> {{ event.event_type|title }}</p>
+                        <p><i class="fas fa-users text-primary"></i> <strong>Participation:</strong> {{ event.participation_type|title }}
+                            {% if event.participation_type == 'group' %}({{ event.group_size }} members){% endif %}
                         </p>
-                        <p><i class="fas fa-user"></i> <strong>Organized by:</strong> {{ event.creator.full_name }}</p>
+                        <p><i class="fas fa-user text-primary"></i> <strong>Organised by:</strong> {{ event.creator.full_name }}</p>
                     </div>
                 </div>
-                
+
                 {% if event.description %}
                     <h5>Description</h5>
                     <p>{{ event.description }}</p>
                 {% endif %}
-                
-                {% if current_user.is_student() %}
+
+                {% if organizers %}
+                <div class="mb-3">
+                    <small class="text-muted"><strong>Organising Team:</strong>
+                        {% for org in organizers %}
+                            <span class="badge bg-secondary me-1">
+                                {{ org.user.full_name }}
+                                {% if org.role == 'faculty_coordinator' %} <span class="text-warning">(FC)</span>
+                                {% elif org.role == 'creator' %} (Creator)
+                                {% else %} (Co-organiser){% endif %}
+                            </span>
+                        {% endfor %}
+                    </small>
+                </div>
+                {% endif %}
+
+                <!-- ── STUDENT ACTIONS ── -->
+                {% if current_user.is_student() or current_user.is_student_coordinator() %}
                     {% if not is_registered and event.get_status() == 'upcoming' and not event.is_full() %}
-                        {% if event.participation_type == 'group' %}
-                            <a href="{{ url_for('register_event', event_id=event.id) }}" 
-                               class="btn btn-success btn-lg">
+                        <a href="{{ url_for('register_event', event_id=event.id) }}" class="btn btn-success btn-lg">
+                            {% if event.participation_type == 'group' %}
                                 <i class="fas fa-users"></i> Register Group
-                            </a>
-                            <p class="text-muted mt-2 small">
-                                <i class="fas fa-info-circle"></i> This is a group event. You'll need to register with {{ event.group_size - 1 }} other member(s).
-                            </p>
-                        {% else %}
-                            <a href="{{ url_for('register_event', event_id=event.id) }}" 
-                               class="btn btn-success btn-lg">
-                                <i class="fas fa-check-circle"></i> Register for Event
-                            </a>
-                        {% endif %}
-                    {% elif is_registered and event.get_status() == 'upcoming' %}
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle"></i> You are registered for this event!
-                            {% if group_members %}
-                                <br>
-                                <strong>Your Group Members:</strong>
-                                <ul class="mt-2 mb-0">
-                                    {% for member in group_members %}
-                                        <li>{{ member.member_name }} ({{ member.member_roll_no }})</li>
-                                    {% endfor %}
-                                </ul>
+                            {% else %}
+                                <i class="fas fa-check-circle"></i> Register
                             {% endif %}
-                            <a href="{{ url_for('cancel_registration', event_id=event.id) }}" 
-                               class="btn btn-sm btn-danger float-end"
-                               onclick="return confirm('Are you sure you want to cancel registration?')">
-                                Cancel Registration
-                            </a>
-                        </div>
-                    {% elif event.is_full() %}
+                            {% if event.requires_payment %} &mdash; &#8377;{{ event.payment_amount }}{% endif %}
+                        </a>
+
+                    {% elif is_registered and my_registration %}
+                        {% if my_registration.payment_status == 'pending' %}
                         <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i> This event is full.
+                            <i class="fas fa-clock"></i> <strong>Payment Pending Verification</strong><br>
+                            Your receipt has been submitted. Awaiting organiser verification.
+                            <div class="mt-2">
+                                <a href="{{ url_for('reupload_receipt', event_id=event.id) }}" class="btn btn-sm btn-outline-warning">
+                                    <i class="fas fa-redo"></i> Re-upload Receipt
+                                </a>
+                            </div>
                         </div>
+
+                        {% elif my_registration.payment_status == 'rejected' %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle"></i> <strong>Payment Rejected</strong><br>
+                            {% if my_registration.payment_rejection_note %}Reason: {{ my_registration.payment_rejection_note }}{% endif %}
+                            <div class="mt-2">
+                                <a href="{{ url_for('reupload_receipt', event_id=event.id) }}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-upload"></i> Re-upload Receipt
+                                </a>
+                            </div>
+                        </div>
+
+                        {% else %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> <strong>You are registered!</strong>
+                            {% if my_registration.payment_status == 'approved' %}
+                                <span class="badge bg-success ms-2">Payment Verified ✓</span>
+                            {% endif %}
+                            {% if group_members %}
+                                <br><strong>Your Group:</strong>
+                                <ul class="mt-2 mb-2">{% for m in group_members %}<li>{{ m.member_name }} ({{ m.member_roll_no }})</li>{% endfor %}</ul>
+                            {% endif %}
+                            {% if event.get_status() == 'upcoming' %}
+                            <a href="{{ url_for('cancel_registration', event_id=event.id) }}"
+                               class="btn btn-sm btn-danger float-end"
+                               onclick="return confirm('Cancel registration?')">Cancel</a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                    {% elif event.is_full() %}
+                        <div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> This event is full.</div>
                     {% endif %}
                 {% endif %}
             </div>
         </div>
     </div>
-    
+
+    <!-- ── SIDEBAR ── -->
     <div class="col-lg-4">
-        {% if current_user.is_faculty() and event.created_by == current_user.id %}
-            <div class="card mb-4">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Event Management</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="fw-bold">Registration Progress</label>
-                        <div class="progress">
-                            {% set percentage = (registered_count / event.max_participants * 100)|int %}
-                            <div class="progress-bar bg-success" style="width: {{ percentage }}%">
-                                {{ percentage }}%
-                            </div>
-                        </div>
-                        <small class="text-muted">
-                            {% if event.participation_type == 'group' %}
-                                {{ registered_count }} groups / {{ event.max_participants }} groups maximum
-                            {% else %}
-                                {{ registered_count }} participants / {{ event.max_participants }} participants maximum
-                            {% endif %}
-                        </small>
+        {% if is_event_organizer %}
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Management</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="fw-bold small">Registration Progress</label>
+                    <div class="progress">
+                        {% set pct = ([registered_count, event.max_participants]|min / event.max_participants * 100)|int %}
+                        <div class="progress-bar bg-success" style="width:{{ pct }}%">{{ pct }}%</div>
                     </div>
-                    <a href="{{ url_for('mark_attendance', event_id=event.id) }}" 
-                       class="btn btn-warning w-100 mb-2">
+                    <small class="text-muted">{{ registered_count }} / {{ event.max_participants }}</small>
+                </div>
+                {% if event.requires_payment and pending_payments_count > 0 %}
+                <div class="alert alert-warning py-2 px-3 mb-3">
+                    <i class="fas fa-clock"></i> <strong>{{ pending_payments_count }}</strong> receipt(s) awaiting verification.
+                </div>
+                {% endif %}
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('mark_attendance', event_id=event.id) }}" class="btn btn-warning">
                         <i class="fas fa-check-circle"></i> Mark Attendance
+                    </a>
+                    <a href="{{ url_for('edit_event', event_id=event.id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit"></i> Edit Event
                     </a>
                 </div>
             </div>
+        </div>
+
+        {% if event.requires_payment and event.payment_qr_path %}
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-qrcode text-primary"></i> Payment QR</h5>
+            </div>
+            <div class="card-body text-center">
+                <img src="{{ url_for('serve_qr', filename=event.payment_qr_path) }}"
+                     style="max-width:150px; border-radius:8px;">
+                <p class="mt-2 fw-bold" style="color:#6366f1;">&#8377;{{ event.payment_amount }}</p>
+                {% if event.payment_note %}<small class="text-muted">{{ event.payment_note }}</small>{% endif %}
+            </div>
+        </div>
         {% endif %}
-        
+        {% endif %}
+
         {% if registered_students %}
-            <div class="card">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-users"></i> Registered Participants</h5>
-                </div>
-                <div class="card-body p-0">
-                    {% if event.participation_type == 'group' %}
-                        {% for group in registered_students %}
-                            <div class="list-group-item">
-                                <strong>Group Leader: {{ group.leader.full_name }}</strong>
-                                <ul class="mt-2 mb-0">
-                                    {% for member in group.members %}
-                                        <li class="d-flex justify-content-between align-items-center">
-                                            {{ member.student.full_name }} ({{ member.student.roll_no }})
-                                            {% if member.attended %}
-                                                <span class="badge bg-success">Present</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">Absent</span>
-                                            {% endif %}
-                                        </li>
-                                    {% endfor %}
-                                </ul>
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-users"></i> Participants</h5>
+            </div>
+            <div class="card-body p-0" style="max-height:500px; overflow-y:auto;">
+                {% if event.participation_type == 'group' %}
+                    {% for group in registered_students %}
+                    <div class="p-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ group.leader.full_name }}</strong> <small class="text-muted">(Leader)</small>
+                                {% if event.requires_payment and group.leader_reg %}
+                                    {% set ps = group.leader_reg.payment_status %}
+                                    <span class="payment-status-{{ ps }} d-inline-block mt-1">
+                                        {% if ps=='pending' %}⏳ Pending{% elif ps=='approved' %}✅ Paid{% elif ps=='rejected' %}❌ Rejected{% endif %}
+                                    </span>
+                                {% endif %}
                             </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="list-group list-group-flush">
-                            {% for reg in registered_students %}
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
-                                    {{ reg.student.full_name }} ({{ reg.student.roll_no or 'N/A' }})
-                                    {% if reg.attended %}
-                                        <span class="badge bg-success">Present</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">Absent</span>
+                            {% if event.requires_payment and group.leader_reg and group.leader_reg.payment_status in ['pending','rejected'] %}
+                            <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal"
+                                    data-bs-target="#vModal{{ group.leader_reg.id }}">Verify</button>
+                            {% endif %}
+                        </div>
+                        <ul class="small mt-1 mb-1">
+                            {% for m in group.members %}
+                            <li class="d-flex justify-content-between">
+                                {{ m.student.full_name }}
+                                <span class="badge {% if m.attended %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {% if m.attended %}Present{% else %}Absent{% endif %}
+                                </span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% if event.requires_payment and group.leader_reg and group.leader_reg.receipt_path %}
+                        <a href="{{ url_for('serve_receipt', filename=group.leader_reg.receipt_path) }}"
+                           target="_blank" class="small text-primary">
+                            <i class="fas fa-file-alt"></i> View Receipt
+                        </a>
+                        {% endif %}
+
+                        {% if event.requires_payment and group.leader_reg and group.leader_reg.payment_status in ['pending','rejected'] %}
+                        <div class="modal fade verify-modal" id="vModal{{ group.leader_reg.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content p-2">
+                                    <div class="modal-header border-0">
+                                        <h6 class="modal-title">Verify — {{ group.leader.full_name }}'s Group</h6>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body pt-0">
+                                        {% if group.leader_reg.receipt_path %}
+                                        <div class="text-center mb-3">
+                                            {% if group.leader_reg.receipt_path.endswith('.pdf') %}
+                                            <a href="{{ url_for('serve_receipt', filename=group.leader_reg.receipt_path) }}"
+                                               target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-file-pdf"></i> Open PDF
+                                            </a>
+                                            {% else %}
+                                            <img src="{{ url_for('serve_receipt', filename=group.leader_reg.receipt_path) }}"
+                                                 style="max-width:100%;border-radius:8px;max-height:220px;object-fit:contain;">
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                        <p class="small">Amount: &#8377;{{ event.payment_amount }}</p>
+                                    </div>
+                                    <div class="modal-footer border-0 flex-column gap-2 pt-0">
+                                        <form method="POST" action="{{ url_for('verify_payment', event_id=event.id, reg_id=group.leader_reg.id) }}" class="w-100">
+                                            <input type="hidden" name="decision" value="approve">
+                                            <button class="btn btn-success w-100"><i class="fas fa-check"></i> Approve</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('verify_payment', event_id=event.id, reg_id=group.leader_reg.id) }}" class="w-100">
+                                            <input type="hidden" name="decision" value="reject">
+                                            <input type="text" name="rejection_note" class="form-control form-control-sm mb-2" placeholder="Reason (optional)">
+                                            <button class="btn btn-danger w-100"><i class="fas fa-times"></i> Reject</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                {% else %}
+                    <div class="list-group list-group-flush">
+                        {% for reg in registered_students %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ reg.student.full_name }}</strong>
+                                    <small class="text-muted d-block">{{ reg.student.roll_no or 'N/A' }}</small>
+                                    {% if event.requires_payment %}
+                                        {% set ps = reg.registration.payment_status %}
+                                        <span class="payment-status-{{ ps }}">
+                                            {% if ps=='pending' %}⏳ Pending{% elif ps=='approved' %}✅ Paid{% elif ps=='rejected' %}❌ Rejected{% else %}Free{% endif %}
+                                        </span>
                                     {% endif %}
                                 </div>
-                            {% endfor %}
+                                <div class="d-flex gap-1 align-items-center">
+                                    <span class="badge {% if reg.attended %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {% if reg.attended %}Present{% else %}Absent{% endif %}
+                                    </span>
+                                    {% if event.requires_payment and reg.registration.payment_status in ['pending','rejected'] %}
+                                    <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal"
+                                            data-bs-target="#vModal{{ reg.registration.id }}">Verify</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if event.requires_payment and reg.registration.receipt_path %}
+                            <a href="{{ url_for('serve_receipt', filename=reg.registration.receipt_path) }}"
+                               target="_blank" class="small text-primary mt-1 d-block">
+                                <i class="fas fa-file-alt"></i> View Receipt
+                            </a>
+                            {% endif %}
+
+                            {% if event.requires_payment and reg.registration.payment_status in ['pending','rejected'] %}
+                            <div class="modal fade verify-modal" id="vModal{{ reg.registration.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content p-2">
+                                        <div class="modal-header border-0">
+                                            <h6 class="modal-title">Verify — {{ reg.student.full_name }}</h6>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body pt-0">
+                                            {% if reg.registration.receipt_path %}
+                                            <div class="text-center mb-3">
+                                                {% if reg.registration.receipt_path.endswith('.pdf') %}
+                                                <a href="{{ url_for('serve_receipt', filename=reg.registration.receipt_path) }}"
+                                                   target="_blank" class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-file-pdf"></i> Open PDF
+                                                </a>
+                                                {% else %}
+                                                <img src="{{ url_for('serve_receipt', filename=reg.registration.receipt_path) }}"
+                                                     style="max-width:100%;border-radius:8px;max-height:220px;object-fit:contain;">
+                                                {% endif %}
+                                            </div>
+                                            {% endif %}
+                                            <p class="small">Amount: &#8377;{{ event.payment_amount }}</p>
+                                            {% if reg.registration.payment_rejection_note %}
+                                            <p class="small text-danger">Prev: {{ reg.registration.payment_rejection_note }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="modal-footer border-0 flex-column gap-2 pt-0">
+                                            <form method="POST" action="{{ url_for('verify_payment', event_id=event.id, reg_id=reg.registration.id) }}" class="w-100">
+                                                <input type="hidden" name="decision" value="approve">
+                                                <button class="btn btn-success w-100"><i class="fas fa-check"></i> Approve</button>
+                                            </form>
+                                            <form method="POST" action="{{ url_for('verify_payment', event_id=event.id, reg_id=reg.registration.id) }}" class="w-100">
+                                                <input type="hidden" name="decision" value="reject">
+                                                <input type="text" name="rejection_note" class="form-control form-control-sm mb-2" placeholder="Reason (optional)">
+                                                <button class="btn btn-danger w-100"><i class="fas fa-times"></i> Reject</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
-                    {% endif %}
-                </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
+        </div>
         {% endif %}
     </div>
 </div>

@@ -79,6 +79,30 @@
                         </ul>
                     </div>
                     
+                    {% if event.requires_payment %}
+                    <div class="card mb-3" style="border: 1px solid rgba(250,204,21,0.4); background: rgba(250,204,21,0.05);">
+                        <div class="card-body">
+                            <h6><i class="fas fa-rupee-sign text-warning"></i> Payment Required — &#8377;{{ event.payment_amount }}</h6>
+                            {% if event.payment_qr_path %}
+                            <div class="text-center my-3">
+                                <p class="text-muted small mb-1">Scan to Pay</p>
+                                <img src="{{ url_for('serve_qr', filename=event.payment_qr_path) }}"
+                                     style="max-width:180px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                            </div>
+                            {% endif %}
+                            {% if event.payment_note %}
+                            <p class="small text-muted">{{ event.payment_note }}</p>
+                            {% endif %}
+                            <div class="mb-2">
+                                <label class="form-label fw-bold">Upload Payment Receipt <span class="text-danger">*</span></label>
+                                {{ form.receipt(class="form-control", accept=".jpg,.jpeg,.png,.pdf") }}
+                                <small class="text-muted">JPG, PNG or PDF, max 5MB. One receipt covers the whole group.</small>
+                                {% for error in form.receipt.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <div class="d-grid gap-2">
                         {{ form.submit(class="btn btn-primary") }}
                         <a href="{{ url_for('event_details', event_id=event.id) }}" class="btn btn-secondary">

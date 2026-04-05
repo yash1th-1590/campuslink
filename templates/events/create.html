@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-md-9">
         <div class="card">
             <div class="card-header bg-white">
                 <h5 class="mb-0">
@@ -13,23 +13,20 @@
             <div class="card-body">
                 <form method="POST" action="">
                     {{ form.hidden_tag() }}
-                    
+
+                    <h6 class="text-primary border-bottom pb-2 mb-3">📋 Basic Info</h6>
+
                     <div class="mb-3">
                         {{ form.title.label(class="form-label") }}
                         {{ form.title(class="form-control", placeholder="Enter event title") }}
-                        {% if form.title.errors %}
-                            {% for error in form.title.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        {% endif %}
+                        {% for error in form.title.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.description.label(class="form-label") }}
-                        {{ form.description(class="form-control", rows=4, placeholder="Event description (optional)...") }}
-                        <small class="text-muted">Description is optional</small>
+                        {{ form.description(class="form-control", rows=4, placeholder="Event description (optional)") }}
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form.event_type.label(class="form-label") }}
@@ -38,72 +35,137 @@
                         <div class="col-md-6 mb-3">
                             {{ form.venue.label(class="form-label") }}
                             {{ form.venue(class="form-control", placeholder="Event venue") }}
+                            {% for error in form.venue.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form.participation_type.label(class="form-label") }}
                             {{ form.participation_type(class="form-select", id="participation_type") }}
                         </div>
-                        <div class="col-md-6 mb-3" id="group_size_div" style="display: none;">
+                        <div class="col-md-6 mb-3" id="group_size_div" style="display:none;">
                             {{ form.group_size.label(class="form-label") }}
                             {{ form.group_size(class="form-select") }}
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form.start_date.label(class="form-label") }}
                             {{ form.start_date(class="form-control", type="date") }}
-                            {% if form.start_date.errors %}
-                                {% for error in form.start_date.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
+                            {% for error in form.start_date.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                         </div>
                         <div class="col-md-6 mb-3">
                             {{ form.end_date.label(class="form-label") }}
                             {{ form.end_date(class="form-control", type="date") }}
-                            <small class="text-muted">Leave blank for single day event</small>
-                            {% if form.end_date.errors %}
-                                {% for error in form.end_date.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
+                            <small class="text-muted">Leave blank for single-day event</small>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form.start_time.label(class="form-label") }}
                             {{ form.start_time(class="form-control", type="time") }}
-                            {% if form.start_time.errors %}
-                                {% for error in form.start_time.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
+                            {% for error in form.start_time.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                         </div>
                         <div class="col-md-6 mb-3">
                             {{ form.end_time.label(class="form-label") }}
                             {{ form.end_time(class="form-control", type="time") }}
-                            {% if form.end_time.errors %}
-                                {% for error in form.end_time.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
+                            {% for error in form.end_time.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.max_participants.label(class="form-label") }}
-                        {{ form.max_participants(class="form-control", type="number", min="1", max="1000") }}
-                        <small class="text-muted">
-                            For group events, this is the maximum number of groups allowed.
-                        </small>
+                        {{ form.max_participants(class="form-control", type="number", min="1") }}
+                        <small class="text-muted">For group events this is the max number of groups.</small>
                     </div>
-                    
-                    <div class="d-grid">
+
+                    <h6 class="text-primary border-bottom pb-2 mb-3 mt-4">🎯 Eligibility Filters</h6>
+                    <p class="text-muted small">Leave as "All" to allow everyone. Only matching students will be notified and allowed to register.</p>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            {{ form.eligible_college.label(class="form-label") }}
+                            {{ form.eligible_college(class="form-select") }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Eligible Branches</label>
+                            {{ form.eligible_branch(class="form-select", size=5) }}
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple. Leave unselected for All.</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Eligible Years</label>
+                            {{ form.eligible_year(class="form-select", size=6) }}
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple. Leave unselected for All.</small>
+                        </div>
+                    </div>
+
+                    <h6 class="text-primary border-bottom pb-2 mb-3 mt-4">👥 Organizers</h6>
+
+                    {% if current_user.is_student_coordinator() %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        As a Student Coordinator, you <strong>must</strong> assign a Faculty Coordinator.
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        {{ form.faculty_coordinator_username.label(class="form-label") }}
+                        {{ form.faculty_coordinator_username(class="form-control", placeholder="Enter faculty username") }}
+                        <small class="text-muted">
+                            {% if current_user.is_student_coordinator() %}
+                                Required — must be a registered faculty member.
+                            {% else %}
+                                Optional — add a faculty co-coordinator.
+                            {% endif %}
+                        </small>
+                        {% for error in form.faculty_coordinator_username.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.co_organizer_usernames.label(class="form-label") }}
+                        {{ form.co_organizer_usernames(class="form-control", placeholder="e.g. john_doe, jane_smith") }}
+                        <small class="text-muted">Comma-separated usernames. Must be faculty or student coordinators.</small>
+                        {% for error in form.co_organizer_usernames.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+
+                    <h6 class="text-primary border-bottom pb-2 mb-3 mt-4">💳 Payment</h6>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.requires_payment(class="form-check-input", id="requires_payment") }}
+                            <label class="form-check-label fw-bold" for="requires_payment">
+                                This event requires payment
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="payment_fields" style="display:none;">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.payment_amount.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">&#8377;</span>
+                                    {{ form.payment_amount(class="form-control", placeholder="e.g. 100") }}
+                                </div>
+                                {% for error in form.payment_amount.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.payment_note.label(class="form-label") }}
+                                {{ form.payment_note(class="form-control", placeholder="e.g. Pay to UPI: abc@upi") }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.payment_qr.label(class="form-label") }}
+                            {{ form.payment_qr(class="form-control", accept=".jpg,.jpeg,.png") }}
+                            <small class="text-muted">Upload your UPI / bank QR code image (JPG or PNG, max 5MB). Required for paid events.</small>
+                            {% for error in form.payment_qr.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-4">
                         {{ form.submit(class="btn btn-primary") }}
                     </div>
                 </form>
@@ -112,21 +174,21 @@
     </div>
 </div>
 
+{% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const participationType = document.getElementById('participation_type');
-        const groupSizeDiv = document.getElementById('group_size_div');
-        
-        function toggleGroupSize() {
-            if (participationType.value === 'group') {
-                groupSizeDiv.style.display = 'block';
-            } else {
-                groupSizeDiv.style.display = 'none';
-            }
-        }
-        
-        participationType.addEventListener('change', toggleGroupSize);
-        toggleGroupSize();
-    });
+document.addEventListener('DOMContentLoaded', function () {
+    const toggle = document.getElementById('requires_payment');
+    const fields = document.getElementById('payment_fields');
+    if (toggle && fields) {
+        function updatePayment() { fields.style.display = toggle.checked ? 'block' : 'none'; }
+        toggle.addEventListener('change', updatePayment);
+        updatePayment();
+    }
+    const pt = document.getElementById('participation_type');
+    const gsd = document.getElementById('group_size_div');
+    function toggleGroupSize() { gsd.style.display = pt.value === 'group' ? 'block' : 'none'; }
+    if (pt) { pt.addEventListener('change', toggleGroupSize); toggleGroupSize(); }
+});
 </script>
+{% endblock %}
 {% endblock %}
