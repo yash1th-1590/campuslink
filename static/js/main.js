@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ── Auto-dismiss alerts ──
+    
     document.querySelectorAll('.alert').forEach(function (alert) {
         setTimeout(function () {
             alert.style.transition = 'opacity 0.5s';
@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 5000);
     });
 
-    // ── Form validation ──
     document.querySelectorAll('form').forEach(function (form) {
         form.addEventListener('submit', function (e) {
             const requiredFields = form.querySelectorAll('[required]');
@@ -32,7 +31,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // ── Date inputs: set min to today ──
     document.querySelectorAll('input[type="date"]').forEach(function (input) {
         if (input.id === 'start_date' || input.name === 'start_date') {
             input.setAttribute('min', new Date().toISOString().split('T')[0]);
@@ -47,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // ── Toast notification system ──
     window.showToast = function (message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = `cl-toast cl-toast-${type}`;
@@ -65,14 +62,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 3500);
     };
 
-    // ── Confirm delete buttons ──
     document.querySelectorAll('[data-confirm]').forEach(function (el) {
         el.addEventListener('click', function (e) {
             if (!confirm(this.dataset.confirm)) e.preventDefault();
         });
     });
 
-    // ── Submit button loading state ──
     document.querySelectorAll('form').forEach(function (form) {
         form.addEventListener('submit', function () {
             const submitBtn = form.querySelector('[type="submit"]');
@@ -88,7 +83,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // ── Drag and drop for file upload ──
     document.querySelectorAll('.drop-zone').forEach(function (zone) {
         const input = zone.querySelector('input[type="file"]');
 
@@ -124,7 +118,6 @@ document.addEventListener('DOMContentLoaded', function () {
         zone.style.background = 'rgba(16,185,129,0.05)';
     }
 
-    // ── Topbar search (client-side event filter if on events page) ──
     const searchInput = document.querySelector('.topbar-search input');
     if (searchInput) {
         searchInput.addEventListener('input', function () {

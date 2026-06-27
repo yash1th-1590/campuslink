@@ -23,8 +23,8 @@ class Config:
     
     
 
-print(f"✅ Connecting to MySQL: {os.getenv('MYSQL_HOST')}:{os.getenv('MYSQL_PORT')}/{os.getenv('MYSQL_DB')}")
+print(f" Connecting to MySQL: {os.getenv('MYSQL_HOST')}:{os.getenv('MYSQL_PORT')}/{os.getenv('MYSQL_DB')}")
 if os.getenv('EMAIL_USER'):
-    print(f"✅ Email configured for: {os.getenv('EMAIL_USER')}")
+    print(f" Email configured for: {os.getenv('EMAIL_USER')}")
 else:
-    print("⚠️ Email not configured - verification emails will be printed to console")
+    print(" Email not configured - verification emails will be printed to console")

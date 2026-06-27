@@ -22,7 +22,7 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Upload folders
+
 QR_UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'uploads', 'qr_codes')
 RECEIPT_UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'uploads', 'receipts')
 os.makedirs(QR_UPLOAD_FOLDER, exist_ok=True)
@@ -43,7 +43,6 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-# ─────────────────────────── FILE HELPERS ───────────────────────────
 
 def allowed_file(filename, allowed_set):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_set
@@ -67,7 +66,6 @@ def save_upload(file_obj, folder, allowed_set, prefix='file'):
     return unique_name  # store only filename, build URL at render time
 
 
-# ─────────────────────────── DECORATORS ───────────────────────────
 
 def admin_required(f):
     @wraps(f)
@@ -89,7 +87,6 @@ def can_create_events(f):
     return decorated_function
 
 
-# ─────────────────────────── HELPERS ───────────────────────────
 
 def create_notification(user_id, event_id, title, message, notification_type='push'):
     notification = Notification(
@@ -141,7 +138,7 @@ def get_event_changes(old_event, form):
         changes.append("Eligible branches updated")
     if old_event.eligible_year != new_year:
         changes.append("Eligible years updated")
-    # Payment changes
+    
     new_requires = form.requires_payment.data
     if old_event.requires_payment != new_requires:
         changes.append(f"Payment requirement {'added' if new_requires else 'removed'}")
@@ -202,7 +199,6 @@ def set_payment_status_for_registration(registration, event):
         registration.status = 'confirmed'
 
 
-# ─────────────────────────── REMINDER SCHEDULER ───────────────────────────
 
 def send_automatic_reminders():
     with app.app_context():
@@ -215,10 +211,10 @@ def send_automatic_reminders():
                 event_id=event.id, status='confirmed').all()
             for reg in registrations:
                 existing = Notification.query.filter_by(
-                    user_id=reg.student_id, event_id=event.id, title='⏰ Event Reminder').first()
+                    user_id=reg.student_id, event_id=event.id, title=' Event Reminder').first()
                 if not existing:
                     create_notification(
-                        reg.student_id, event.id, '⏰ Event Reminder',
+                        reg.student_id, event.id, ' Event Reminder',
                         f'Reminder: "{event.title}" is TOMORROW at {event.venue}! '
                         f'Starts at {event.start_time.strftime("%I:%M %p")}.',
                         'email'
@@ -226,7 +222,7 @@ def send_automatic_reminders():
                     reminders_sent += 1
         if reminders_sent > 0:
             db.session.commit()
-            print(f"✅ Auto-sent {reminders_sent} reminders")
+            print(f" Auto-sent {reminders_sent} reminders")
 
 
 def reminder_scheduler():
@@ -245,10 +241,9 @@ def reminder_scheduler():
 
 reminder_thread = threading.Thread(target=reminder_scheduler, daemon=True)
 reminder_thread.start()
-print("✅ Automatic reminder system started!")
+print(" Automatic reminder system started!")
 
 
-# ─────────────────────────── SERVE UPLOADS ───────────────────────────
 
 @app.route('/uploads/qr_codes/<filename>')
 @login_required
@@ -263,7 +258,6 @@ def serve_receipt(filename):
     return send_from_directory(RECEIPT_UPLOAD_FOLDER, filename)
 
 
-# ─────────────────────────── AUTH ROUTES ───────────────────────────
 
 @app.route('/')
 def index():
@@ -297,6 +291,7 @@ def login():
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
+    
     form = RegistrationForm()
     if form.validate_on_submit():
         if form.college.data == 'MGIT':
@@ -318,6 +313,7 @@ def register():
         )
         user.set_password(form.password.data)
         verification_token = user.generate_verification_token()
+
         try:
             db.session.add(user)
             db.session.commit()
@@ -327,7 +323,9 @@ def register():
         except Exception as e:
             db.session.rollback()
             flash(f'Registration failed: {str(e)}', 'danger')
-    return render_template('register.html', form=form)
+            return render_template('register.html', form=form)  
+
+    return render_template('register.html', form=form)  
 
 
 @app.route('/verify/<token>')
@@ -385,7 +383,6 @@ def logout():
     return redirect(url_for('index'))
 
 
-# ─────────────────────────── DASHBOARD ───────────────────────────
 
 @app.route('/dashboard')
 @login_required
@@ -436,7 +433,6 @@ def dashboard():
                                registered_events=registered_events)
 
 
-# ─────────────────────────── COORDINATOR APPLICATION ───────────────────────────
 
 @app.route('/apply_coordinator', methods=['GET', 'POST'])
 @login_required
@@ -463,7 +459,7 @@ def apply_coordinator():
                 send_coordinator_application_email(
                     admin.email, current_user.full_name,
                     current_user.username, form.reason.data, review_url)
-                create_notification(admin.id, None, '📋 New Coordinator Application',
+                create_notification(admin.id, None, ' New Coordinator Application',
                                     f'{current_user.full_name} applied to become a Student Coordinator.', 'push')
             db.session.commit()
             flash('Application submitted! Admin will review it shortly.', 'success')
@@ -474,7 +470,6 @@ def apply_coordinator():
     return render_template('apply_coordinator.html', form=form)
 
 
-# ─────────────────────────── EVENTS ───────────────────────────
 
 @app.route('/events')
 @login_required
@@ -627,7 +622,7 @@ def event_details(event_id):
                 if user:
                     attendance = Attendance.query.filter_by(
                         event_id=event.id, student_id=user.id).first()
-                    # Get leader's registration for payment info
+                   
                     leader_reg = Registration.query.filter_by(
                         event_id=event.id,
                         student_id=gr.group_leader_id).first()
@@ -649,7 +644,7 @@ def event_details(event_id):
                     'registration': reg,
                 })
 
-    # Pending payment count for badge
+    
     pending_payments_count = event.get_pending_payments_count() if is_event_organizer else 0
     organizers = EventOrganizer.query.filter_by(event_id=event.id).all()
 
@@ -752,7 +747,7 @@ def edit_event(event_id):
                 for reg in registrations:
                     student = User.query.get(reg.student_id)
                     msg = f'Event "{event.title}" was updated. Changes: ' + '; '.join(changes)
-                    create_notification(student.id, event.id, '📢 Event Updated', msg, 'push')
+                    create_notification(student.id, event.id, ' Event Updated', msg, 'push')
                     if student.email_notifications:
                         send_event_update_email(student.email, student.full_name,
                                                 event.title, changes, event_url)
@@ -768,7 +763,6 @@ def edit_event(event_id):
     return render_template('events/edit.html', form=form, event=event)
 
 
-# ─────────────────────────── REGISTRATION ───────────────────────────
 
 @app.route('/events/<int:event_id>/register', methods=['GET', 'POST'])
 @login_required
@@ -791,7 +785,7 @@ def register_event(event_id):
         flash('This event is full.', 'danger')
         return redirect(url_for('event_details', event_id=event_id))
 
-    # ── INDIVIDUAL ──
+
     if event.participation_type == 'individual':
         existing = Registration.query.filter_by(
             event_id=event.id, student_id=current_user.id).first()
@@ -829,16 +823,16 @@ def register_event(event_id):
                 db.session.commit()
                 if event.requires_payment:
                     create_notification(current_user.id, event.id,
-                                        '⏳ Registration Pending Payment Verification',
+                                        ' Registration Pending Payment Verification',
                                         f'Your receipt for "{event.title}" has been submitted. '
                                         f'Awaiting organizer verification.', 'push')
-                    # Notify organizers
+                    
                     server_name = app.config.get('SERVER_NAME', '127.0.0.1:5000')
                     event_url = f"http://{server_name}/events/{event.id}"
                     for org in event.organizers:
                         org_user = User.query.get(org.user_id)
                         create_notification(org.user_id, event.id,
-                                            '💳 Payment Receipt Submitted',
+                                            ' Payment Receipt Submitted',
                                             f'{current_user.full_name} submitted a payment receipt for "{event.title}".',
                                             'push')
                         if org_user and org_user.email_notifications:
@@ -847,11 +841,11 @@ def register_event(event_id):
                     db.session.commit()
                     flash('Receipt submitted! Your registration is pending payment verification.', 'info')
                 else:
-                    create_notification(current_user.id, event.id, '✅ Registration Confirmed!',
+                    create_notification(current_user.id, event.id, ' Registration Confirmed!',
                                         f'You registered for "{event.title}" on '
                                         f'{event.start_date.strftime("%B %d, %Y")}.', 'push')
                     for org in event.organizers:
-                        create_notification(org.user_id, event.id, '📋 New Registration',
+                        create_notification(org.user_id, event.id, ' New Registration',
                                             f'{current_user.full_name} registered for "{event.title}".', 'push')
                     db.session.commit()
                     flash(f'Successfully registered for "{event.title}"!', 'success')
@@ -861,14 +855,14 @@ def register_event(event_id):
                 flash(f'Failed to register: {str(e)}', 'danger')
                 return redirect(url_for('event_details', event_id=event_id))
 
-        # GET — show payment page or just redirect to confirm
+        
         if event.requires_payment:
             return render_template('events/payment_register.html', event=event, form=form)
         else:
-            # No payment, auto-POST logic — redirect back with a flash asking confirmation
+            
             return render_template('events/payment_register.html', event=event, form=form)
 
-    # ── GROUP ──
+    
     else:
         if not current_user.roll_no:
             flash('Please update your profile with your roll number.', 'danger')
@@ -962,7 +956,7 @@ def register_event(event_id):
                     db.session.flush()
                     group_registrations.append(member_reg)
 
-                # Create Registration records; only leader gets receipt
+                
                 for i, group_reg in enumerate(group_registrations):
                     user = User.query.filter_by(roll_no=group_reg.member_roll_no).first()
                     if user:
@@ -984,8 +978,8 @@ def register_event(event_id):
                                 if event.requires_payment else 'Registration confirmed!'))
                 for member in all_members:
                     create_notification(member.id, event.id,
-                                        '⏳ Group Registration Pending' if event.requires_payment
-                                        else '✅ Group Registration Confirmed!',
+                                        ' Group Registration Pending' if event.requires_payment
+                                        else ' Group Registration Confirmed!',
                                         notif_msg, 'push')
 
                 if event.requires_payment:
@@ -994,7 +988,7 @@ def register_event(event_id):
                     for org in event.organizers:
                         org_user = User.query.get(org.user_id)
                         create_notification(org.user_id, event.id,
-                                            '💳 Group Payment Receipt Submitted',
+                                            ' Group Payment Receipt Submitted',
                                             f'Group led by {current_user.full_name} submitted receipt for "{event.title}".',
                                             'push')
                         if org_user and org_user.email_notifications:
@@ -1002,7 +996,7 @@ def register_event(event_id):
                                                        current_user.full_name, event.title, event_url)
                 else:
                     for org in event.organizers:
-                        create_notification(org.user_id, event.id, '📋 New Group Registration',
+                        create_notification(org.user_id, event.id, ' New Group Registration',
                                             f'Group of {event.group_size} led by {current_user.full_name} registered.',
                                             'push')
                 db.session.commit()
@@ -1019,7 +1013,7 @@ def register_event(event_id):
                                form=form, event=event, group_size=event.group_size)
 
 
-# ─────────────────────────── PAYMENT VERIFICATION ───────────────────────────
+
 
 @app.route('/events/<int:event_id>/payment/<int:reg_id>/verify', methods=['POST'])
 @login_required
@@ -1041,7 +1035,7 @@ def verify_payment(event_id, reg_id):
         registration.payment_status = 'approved'
         registration.payment_rejection_note = None
 
-        # For group events — approve all members in the same group
+        
         if registration.group_registration_id:
             group_reg = GroupRegistration.query.get(registration.group_registration_id)
             if group_reg:
@@ -1055,7 +1049,7 @@ def verify_payment(event_id, reg_id):
                     r.status = 'confirmed'
                     member = User.query.get(r.student_id)
                     if member:
-                        create_notification(member.id, event_id, '✅ Payment Approved!',
+                        create_notification(member.id, event_id, ' Payment Approved!',
                                             f'Your payment for "{event.title}" is approved. '
                                             f'Registration confirmed!', 'push')
                         if member.email_notifications:
@@ -1063,7 +1057,7 @@ def verify_payment(event_id, reg_id):
                                                         event.title, event_url)
         else:
             registration.status = 'confirmed'
-            create_notification(student.id, event_id, '✅ Payment Approved!',
+            create_notification(student.id, event_id, ' Payment Approved!',
                                 f'Your payment for "{event.title}" is approved. Registration confirmed!', 'push')
             if student and student.email_notifications:
                 send_payment_approved_email(student.email, student.full_name, event.title, event_url)
@@ -1074,7 +1068,7 @@ def verify_payment(event_id, reg_id):
         registration.payment_status = 'rejected'
         registration.payment_rejection_note = rejection_note or 'Payment could not be verified.'
 
-        # For group — reject all members
+        
         if registration.group_registration_id:
             group_reg = GroupRegistration.query.get(registration.group_registration_id)
             if group_reg:
@@ -1088,14 +1082,14 @@ def verify_payment(event_id, reg_id):
                     r.payment_rejection_note = rejection_note or 'Payment could not be verified.'
                     member = User.query.get(r.student_id)
                     if member:
-                        create_notification(member.id, event_id, '❌ Payment Rejected',
+                        create_notification(member.id, event_id, ' Payment Rejected',
                                             f'Your payment for "{event.title}" was rejected. '
                                             f'Reason: {rejection_note or "N/A"}. Please re-upload.', 'push')
                         if member.email_notifications:
                             send_payment_rejected_email(member.email, member.full_name,
                                                         event.title, rejection_note, event_url)
         else:
-            create_notification(student.id, event_id, '❌ Payment Rejected',
+            create_notification(student.id, event_id, ' Payment Rejected',
                                 f'Your payment for "{event.title}" was rejected. '
                                 f'Reason: {rejection_note or "N/A"}. Please re-upload.', 'push')
             if student and student.email_notifications:
@@ -1142,7 +1136,7 @@ def reupload_receipt(event_id):
         registration.payment_rejection_note = None
         registration.receipt_uploaded_at = datetime.utcnow()
 
-        # For group — reset all members to pending
+      
         if registration.group_registration_id:
             group_reg = GroupRegistration.query.get(registration.group_registration_id)
             if group_reg and group_reg.group_leader_id == current_user.id:
@@ -1160,13 +1154,13 @@ def reupload_receipt(event_id):
 
         try:
             db.session.commit()
-            # Notify organizers
+            
             server_name = app.config.get('SERVER_NAME', '127.0.0.1:5000')
             event_url = f"http://{server_name}/events/{event_id}"
             for org in event.organizers:
                 org_user = User.query.get(org.user_id)
                 create_notification(org.user_id, event_id,
-                                    '💳 Receipt Re-uploaded',
+                                    ' Receipt Re-uploaded',
                                     f'{current_user.full_name} re-uploaded payment receipt for "{event.title}". Please re-verify.',
                                     'push')
                 if org_user and org_user.email_notifications:
@@ -1214,7 +1208,7 @@ def cancel_registration(event_id):
         db.session.delete(registration)
 
     for org in event.organizers:
-        create_notification(org.user_id, event.id, '❌ Registration Cancelled',
+        create_notification(org.user_id, event.id, ' Registration Cancelled',
                             f'{current_user.full_name} cancelled registration for "{event.title}".', 'push')
     try:
         db.session.commit()
@@ -1226,7 +1220,7 @@ def cancel_registration(event_id):
     return redirect(url_for('events'))
 
 
-# ─────────────────────────── ATTENDANCE ───────────────────────────
+
 
 @app.route('/attendance/<int:event_id>/mark', methods=['GET', 'POST'])
 @login_required
@@ -1251,7 +1245,7 @@ def mark_attendance(event_id):
         registrations = [{'group_leader': User.query.get(lid), 'members': members, 'group_id': lid}
                          for lid, members in group_dict.items()]
     else:
-        # Only confirmed registrations for attendance
+        
         registrations = Registration.query.filter_by(
             event_id=event.id, status='confirmed').all()
 
@@ -1275,7 +1269,7 @@ def mark_attendance(event_id):
                                                   attended=attended, marked_by=current_user.id))
                     status_word = 'PRESENT' if attended else 'ABSENT'
                     create_notification(member.id, event.id,
-                                        '✅ Attendance Marked' if attended else '📝 Attendance Marked',
+                                        ' Attendance Marked' if attended else ' Attendance Marked',
                                         f'Attendance for "{event.title}" marked as {status_word}.', 'email')
         else:
             for reg in registrations:
@@ -1290,7 +1284,7 @@ def mark_attendance(event_id):
                                               attended=attended, marked_by=current_user.id))
                 status_word = 'PRESENT' if attended else 'ABSENT'
                 create_notification(reg.student_id, event.id,
-                                    '✅ Attendance Marked' if attended else '📝 Attendance Marked',
+                                    ' Attendance Marked' if attended else ' Attendance Marked',
                                     f'Attendance for "{event.title}" marked as {status_word}.', 'email')
         try:
             db.session.commit()
@@ -1316,7 +1310,7 @@ def mark_attendance(event_id):
                            is_group=(event.participation_type == 'group'))
 
 
-# ─────────────────────────── NOTIFICATIONS ───────────────────────────
+
 
 @app.route('/notifications')
 @login_required
@@ -1332,7 +1326,6 @@ def notifications():
     return render_template('notifications.html', notifications=notifs)
 
 
-# ─────────────────────────── PROFILE ───────────────────────────
 
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
@@ -1369,7 +1362,6 @@ def profile():
                            form=form, latest_coordinator_app=latest_app)
 
 
-# ─────────────────────────── ADMIN ───────────────────────────
 
 @app.route('/admin')
 @login_required
@@ -1470,14 +1462,14 @@ def review_coordinator_application(app_id):
         applicant.coordinator_status = 'approved'
         flash(f'{applicant.full_name} is now a Student Coordinator.', 'success')
         send_coordinator_decision_email(applicant.email, applicant.full_name, approved=True)
-        create_notification(applicant.id, None, '🎉 Application Approved!',
+        create_notification(applicant.id, None, ' Application Approved!',
                             'Your Student Coordinator application has been approved!', 'push')
     elif decision == 'reject':
         application.status = 'rejected'
         applicant.coordinator_status = 'rejected'
         flash(f'Application from {applicant.full_name} rejected.', 'info')
         send_coordinator_decision_email(applicant.email, applicant.full_name, approved=False)
-        create_notification(applicant.id, None, '📋 Application Update',
+        create_notification(applicant.id, None, ' Application Update',
                             'Your coordinator application was not approved at this time.', 'push')
     try:
         db.session.commit()
@@ -1531,7 +1523,6 @@ def send_reminders_manual():
     return redirect(url_for('admin_dashboard'))
 
 
-# ─────────────────────────── ERROR HANDLERS ───────────────────────────
 
 @app.errorhandler(404)
 def not_found_error(error):
@@ -1544,13 +1535,12 @@ def internal_error(error):
     return render_template('500.html'), 500
 
 
-# ─────────────────────────── RUN ───────────────────────────
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        print("✅ Database tables created/verified!")
-    print("\n✅ CampusLink is running!")
-    print("📍 Access at: http://127.0.0.1:5000")
+        print(" Database tables created/verified!")
+    print("\n CampusLink is running!")
+    print(" Access at: http://127.0.0.1:5000")
     print("=" * 50)
     app.run(debug=True, host='127.0.0.1', port=5000)

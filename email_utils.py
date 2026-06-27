@@ -19,7 +19,7 @@ def _send_email(to_email, subject, html_content, text_content):
     email_password = current_app.config.get('EMAIL_PASSWORD')
 
     if not email_user or not email_password:
-        print(f"\n⚠️  EMAIL NOT CONFIGURED - Would send to: {to_email}")
+        print(f"\n  EMAIL NOT CONFIGURED - Would send to: {to_email}")
         print(f"   Subject: {subject}")
         print("=" * 50)
         return True
@@ -29,10 +29,10 @@ def _send_email(to_email, subject, html_content, text_content):
         server.login(email_user, email_password)
         server.send_message(msg)
         server.quit()
-        print(f"\n✅ Email sent to {to_email}")
+        print(f"\n Email sent to {to_email}")
         return True
     except Exception as smtp_error:
-        print(f"\n❌ SMTP Error: {smtp_error}")
+        print(f"\n SMTP Error: {smtp_error}")
         return False
 
 
@@ -68,15 +68,15 @@ def send_verification_email(user_email, username, verification_token):
     server_name = current_app.config.get('SERVER_NAME', '127.0.0.1:5000')
     verification_url = f"http://{server_name}/verify/{verification_token}"
     body = f"""
-        <h2>Welcome to CampusLink, {username}! 🎉</h2>
+        <h2>Welcome to CampusLink, {username}! </h2>
         <p>Please verify your email to complete registration.</p>
         <div style="text-align: center;">
             <a href="{verification_url}" class="button">Verify Email Address</a>
         </div>
         <div class="note">
-            <p><strong>🔗 Link:</strong></p>
+            <p><strong> Link:</strong></p>
             <p style="word-break: break-all; color: #6366f1;">{verification_url}</p>
-            <p>⏰ Expires in <strong>24 hours</strong>.</p>
+            <p> Expires in <strong>24 hours</strong>.</p>
         </div>
         <p>If you did not create this account, ignore this email.</p>"""
     text = f"Welcome {username}!\nVerify: {verification_url}\nExpires in 24 hours."
@@ -100,7 +100,7 @@ def send_coordinator_decision_email(user_email, username, approved, revoked=Fals
         text = f"Hi {username}, your Student Coordinator role has been revoked."
     elif approved:
         subject = "Coordinator Application Approved! - CampusLink"
-        body = f"<h2>Congratulations, {username}! 🎉</h2><p>Your application has been <span class='badge-green'>Approved</span>! You can now create and manage events.</p>"
+        body = f"<h2>Congratulations, {username}! </h2><p>Your application has been <span class='badge-green'>Approved</span>! You can now create and manage events.</p>"
         text = f"Hi {username}, your coordinator application has been approved!"
     else:
         subject = "Coordinator Application Update - CampusLink"
@@ -112,7 +112,7 @@ def send_coordinator_decision_email(user_email, username, approved, revoked=Fals
 def send_event_update_email(user_email, username, event_title, changes_summary, event_url):
     changes_html = "".join([f"<li>{c}</li>" for c in changes_summary])
     body = f"""
-        <h2>📢 Event Updated: {event_title}</h2>
+        <h2> Event Updated: {event_title}</h2>
         <p>Hi {username}, an event you are registered for has been updated.</p>
         <div class="note"><p><strong>What changed:</strong></p><ul>{changes_html}</ul></div>
         <div style="text-align:center;"><a href="{event_url}" class="button">View Event Details</a></div>"""
@@ -124,7 +124,7 @@ def send_payment_receipt_email(organizer_email, organizer_name, student_name,
                                 event_title, event_url):
     """Notify organizer that a student has submitted a payment receipt."""
     body = f"""
-        <h2>💳 Payment Receipt Submitted</h2>
+        <h2> Payment Receipt Submitted</h2>
         <p>Hi {organizer_name},</p>
         <p><strong>{student_name}</strong> has submitted a payment receipt for
         <strong>"{event_title}"</strong> and is awaiting verification.</p>
@@ -138,7 +138,7 @@ def send_payment_receipt_email(organizer_email, organizer_name, student_name,
 def send_payment_approved_email(student_email, student_name, event_title, event_url):
     """Notify student their payment was approved."""
     body = f"""
-        <h2>✅ Payment Approved!</h2>
+        <h2> Payment Approved!</h2>
         <p>Hi {student_name},</p>
         <p>Your payment for <strong>"{event_title}"</strong> has been
         <span class="badge-green">Approved</span>!</p>
@@ -154,7 +154,7 @@ def send_payment_rejected_email(student_email, student_name, event_title, reject
     """Notify student their payment was rejected."""
     note_html = f"<div class='note'><strong>Reason:</strong> {rejection_note}</div>" if rejection_note else ""
     body = f"""
-        <h2>❌ Payment Not Verified</h2>
+        <h2> Payment Not Verified</h2>
         <p>Hi {student_name},</p>
         <p>Your payment receipt for <strong>"{event_title}"</strong> was
         <span class="badge-red">Rejected</span>.</p>
