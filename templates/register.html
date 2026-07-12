@@ -82,13 +82,13 @@
                     <div id="mgit-fields" class="college-section">
                         <div class="mb-3">
                             <label class="form-label">Email <span class="text-danger">*</span></label>
-                            {{ form.email(class="form-control", placeholder="yourname@mgit.ac.in", id="email_mgit") }}
+                            {{ form.email(class="form-control", placeholder="yourname@mgit.ac.in", id="email_mgit", required=False) }}
                             <small class="text-muted">Must be your official @mgit.ac.in email</small>
                             {% for error in form.email.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                         </div>
                         <div class="mb-3">
                             {{ form.branch.label(class="form-label") }}
-                            {{ form.branch(class="form-select") }}
+                            {{ form.branch(class="form-select", required=False) }}
                             {% for error in form.branch.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                         </div>
                     </div>
@@ -97,17 +97,17 @@
                     <div id="other-fields" class="college-section">
                         <div class="mb-3">
                             <label class="form-label">Email <span class="text-danger">*</span></label>
-                            {{ form.email(class="form-control", placeholder="yourname@college.edu", id="email_other") }}
+                            {{ form.email(class="form-control", placeholder="yourname@college.edu", id="email_other", required=False) }}
                             {% for error in form.email.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                         </div>
                         <div class="mb-3">
                             {{ form.college_name.label(class="form-label") }}
-                            {{ form.college_name(class="form-control", placeholder="e.g. JNTU Hyderabad") }}
+                            {{ form.college_name(class="form-control", placeholder="e.g. JNTU Hyderabad", required=False) }}
                             {% for error in form.college_name.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Branch Abbreviation <span class="text-danger">*</span></label>
-                            {{ form.branch_other(class="form-control", placeholder="e.g. CSE, ECE, MECH") }}
+                            {{ form.branch_other(class="form-control", placeholder="e.g. CSE, ECE, MECH", required=False) }}
                             <div class="branch-hint">
                                 <i class="fas fa-info-circle"></i>
                                 Enter uppercase abbreviation only. Examples: <strong>CSE</strong>, <strong>ECE</strong>, <strong>MECH</strong>, <strong>EEE</strong>, <strong>IT</strong>
